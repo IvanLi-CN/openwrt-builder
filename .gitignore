@@ -1,0 +1,7 @@
+/build/
+/dl/
+/work/
+__pycache__/
+*.log
+*.tmp
+.DS_Store

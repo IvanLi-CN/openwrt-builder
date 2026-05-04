@@ -1,0 +1,13 @@
+{
+  "admin/system/ramfree": {
+    "title": "Free Memory",
+    "order": 90,
+    "action": {
+      "type": "view",
+      "path": "ramfree"
+    },
+    "depends": {
+      "acl": [ "luci-app-ramfree" ]
+    }
+  }
+}

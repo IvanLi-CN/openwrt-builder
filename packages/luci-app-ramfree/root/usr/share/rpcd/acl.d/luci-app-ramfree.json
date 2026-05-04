@@ -1,0 +1,10 @@
+{
+  "luci-app-ramfree": {
+    "description": "Grant access to free memory",
+    "write": {
+      "file": {
+        "/usr/libexec/ramfree": [ "exec" ]
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "x86_64": {
+    "target": "x86/64",
+    "profile": "generic",
+    "arch": "x86_64",
+    "artifact_globs": [
+      "bin/targets/x86/64/*-ext4-combined.img.gz",
+      "bin/targets/x86/64/*-squashfs-combined.img.gz",
+      "bin/targets/x86/64/*-ext4-combined-efi.img.gz",
+      "bin/targets/x86/64/*-squashfs-combined-efi.img.gz",
+      "bin/targets/x86/64/*-generic-rootfs.tar.gz"
+    ]
+  },
+  "nanopi-r4s": {
+    "target": "rockchip/armv8",
+    "profile": "friendlyarm_nanopi-r4s",
+    "arch": "aarch64_generic",
+    "artifact_globs": ["bin/targets/rockchip/armv8/*.img.gz"]
+  },
+  "nanopi-r5s": {
+    "target": "rockchip/armv8",
+    "profile": "friendlyarm_nanopi-r5s",
+    "arch": "aarch64_generic",
+    "artifact_globs": ["bin/targets/rockchip/armv8/*.img.gz"]
+  }
+}
