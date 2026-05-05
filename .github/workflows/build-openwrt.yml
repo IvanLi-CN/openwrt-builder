@@ -21,6 +21,18 @@ on:
           - x86_64
           - nanopi-r4s
           - nanopi-r5s
+      publish_release:
+        description: Publish build outputs to a GitHub Release
+        required: true
+        default: false
+        type: boolean
+      release_tag:
+        description: Release tag to publish when publish_release is true
+        required: false
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
   validate:
@@ -70,3 +82,32 @@ jobs:
         with:
           name: openwrt-${{ inputs.version }}-${{ inputs.device }}
           path: artifacts/${{ inputs.version }}-${{ inputs.device }}
+          retention-days: 1
+      - name: Publish release
+        if: ${{ inputs.publish_release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          VERSION: ${{ inputs.version }}
+          DEVICE: ${{ inputs.device }}
+          OUT_DIR: artifacts/${{ inputs.version }}-${{ inputs.device }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RELEASE_TAG" ]; then
+            RELEASE_TAG="openwrt-${VERSION}-${DEVICE}-${GITHUB_RUN_NUMBER}"
+          fi
+          title="OpenWrt ${VERSION} ${DEVICE} ${GITHUB_RUN_NUMBER}"
+          notes="$(mktemp)"
+          {
+            echo "OpenWrt ${VERSION} ${DEVICE} build."
+            echo
+            echo "Build evidence:"
+            echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "- Commit: ${GITHUB_SHA}"
+            echo
+            echo "Verify downloads with sha256sums.txt."
+          } > "$notes"
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "$title" --notes-file "$notes" --prerelease
+          fi
+          gh release upload "$RELEASE_TAG" "$OUT_DIR"/* --clobber
