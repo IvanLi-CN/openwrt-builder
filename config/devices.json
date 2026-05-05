@@ -3,6 +3,10 @@
     "target": "x86/64",
     "profile": "generic",
     "arch": "x86_64",
+    "config": [
+      "CONFIG_TARGET_KERNEL_PARTSIZE=64",
+      "CONFIG_TARGET_ROOTFS_PARTSIZE=1024"
+    ],
     "artifact_globs": [
       "bin/targets/x86/64/*-ext4-combined.img.gz",
       "bin/targets/x86/64/*-squashfs-combined.img.gz",

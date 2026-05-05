@@ -86,6 +86,14 @@ if [[ "$NO_APPS" == "y" ]]; then
   sed -i.bak '/CONFIG_PACKAGE_luci-app-/d;/CONFIG_PACKAGE_luci-theme-argon/d;/CONFIG_PACKAGE_luci-app-argon-config/d' .config
   rm -f .config.bak
 fi
+$PYTHON - "$profile_json" >> .config <<'PY'
+import json
+import sys
+
+profile = json.loads(sys.argv[1])
+for line in profile.get("config", []):
+    print(line)
+PY
 cat "$ROOT/config/$VERSION.config" >> .config
 
 make defconfig
