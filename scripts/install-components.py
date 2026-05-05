@@ -26,6 +26,14 @@ def copy_path(src: Path, dst: Path):
         shutil.copy2(src, dst)
 
 
+def patch_openwrt_25_12_compat(openwrt_dir: Path):
+    netdata_makefile = openwrt_dir / "package" / "custom" / "luci-app-netdata" / "Makefile"
+    if netdata_makefile.exists():
+        text = netdata_makefile.read_text()
+        text = text.replace("+netdata-ssl", "+netdata")
+        netdata_makefile.write_text(text)
+
+
 def install_component(component, openwrt_dir: Path, cache_dir: Path):
     repo = component["repo"]
     if repo == "local":
@@ -68,6 +76,7 @@ def main():
     for component in lock["components"]:
         print(f"==> installing {component['name']}")
         install_component(component, openwrt_dir, cache_dir)
+    patch_openwrt_25_12_compat(openwrt_dir)
     return 0
 
 
