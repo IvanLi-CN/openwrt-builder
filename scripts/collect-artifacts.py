@@ -3,6 +3,7 @@ import glob
 import json
 import shutil
 import sys
+import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,11 +34,17 @@ def main():
     if not copied:
         print("no firmware artifacts found", file=sys.stderr)
         return 1
+
+    buildinfo_archive = out / "buildinfo.tar.gz"
+    with tarfile.open(buildinfo_archive, "w:gz") as archive:
+        archive.add(info, arcname=info.name)
+
+    release_assets = sorted([*copied, buildinfo_archive], key=lambda path: path.name)
     import hashlib
     with (out / "sha256sums.txt").open("w") as f:
-        for path in copied:
+        for path in release_assets:
             f.write(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}\n")
-    print(f"collected {len(copied)} artifacts into {out}")
+    print(f"collected {len(copied)} firmware artifacts into {out}")
     return 0
 
 if __name__ == "__main__":

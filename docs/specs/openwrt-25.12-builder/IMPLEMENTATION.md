@@ -8,4 +8,5 @@
   - `packages/luci-app-zerotier`
 - Runtime overlay files are tracked under `files/`.
 - CI entrypoint: `.github/workflows/build-openwrt.yml`.
-
+- Release publication creates a draft first, uploads only regular artifact files, then marks the release as a prerelease after all uploads succeed.
+- Collected build metadata is distributed as `buildinfo.tar.gz`; its checksum is included with the firmware payload checksums.

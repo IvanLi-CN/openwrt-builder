@@ -17,10 +17,25 @@ scripts/check-package-set.py --version lite --device x86_64
 scripts/build.sh lite x86_64
 ```
 
+## Pre-release downloads
+
+Firmware builds are published as GitHub pre-releases. Download the image that
+matches the target boot mode, along with `sha256sums.txt` and
+`buildinfo.tar.gz`.
+
+`sha256sums.txt` covers every firmware image and the build-information archive.
+Verify the downloaded payloads before flashing:
+
+```bash
+sha256sum -c sha256sums.txt
+```
+
+`buildinfo.tar.gz` contains the generated configuration, feed revisions,
+version information, and package manifest for the build.
+
 ## Layout
 
 - `config/` pinned source and package selections
 - `packages/` local compatibility packages
 - `files/` runtime overlay copied into the image
 - `scripts/` validation, build, and artifact collection
-
