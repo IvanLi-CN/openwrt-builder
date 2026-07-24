@@ -107,7 +107,55 @@ jobs:
             echo
             echo "Verify downloads with sha256sums.txt."
           } > "$notes"
-          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "$title" --notes-file "$notes" --prerelease
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "release already exists: $RELEASE_TAG" >&2
+            exit 1
           fi
-          gh release upload "$RELEASE_TAG" "$OUT_DIR"/* --clobber
+
+          for required_asset in "$OUT_DIR/sha256sums.txt" "$OUT_DIR/buildinfo.tar.gz"; do
+            if [ ! -s "$required_asset" ]; then
+              echo "missing required release asset: $required_asset" >&2
+              exit 1
+            fi
+          done
+
+          if ! awk -F '  ' '
+            NF != 2 || length($1) != 64 || $1 !~ /^[[:xdigit:]]+$/ || $2 == "" || $2 ~ /\// { exit 1 }
+          ' "$OUT_DIR/sha256sums.txt"; then
+            echo "invalid sha256sums.txt" >&2
+            exit 1
+          fi
+          mapfile -t release_asset_names < <(awk -F '  ' '{ print $2 }' "$OUT_DIR/sha256sums.txt" | sort -u)
+          if [ "${#release_asset_names[@]}" -eq 0 ]; then
+            echo "no checksummed release assets found" >&2
+            exit 1
+          fi
+          if ! (cd "$OUT_DIR" && sha256sum -c sha256sums.txt); then
+            exit 1
+          fi
+          mapfile -t top_level_files < <(find "$OUT_DIR" -maxdepth 1 -type f -printf '%f\n' | sort)
+          mapfile -t expected_files < <(printf '%s\n' sha256sums.txt "${release_asset_names[@]}" | sort)
+          if ! diff -u <(printf '%s\n' "${expected_files[@]}") <(printf '%s\n' "${top_level_files[@]}"); then
+            echo "release assets must be the verified top-level files only" >&2
+            exit 1
+          fi
+          release_assets=("$OUT_DIR/sha256sums.txt")
+          for asset_name in "${release_asset_names[@]}"; do
+            release_assets+=("$OUT_DIR/$asset_name")
+          done
+
+          created_release=false
+          cleanup_draft() {
+            if [ "$created_release" = true ]; then
+              gh release delete "$RELEASE_TAG" --yes || true
+            fi
+          }
+          trap cleanup_draft ERR
+
+          gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "$title" --notes-file "$notes" --draft --latest=false
+          created_release=true
+          gh release upload "$RELEASE_TAG" "${release_assets[@]}" --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false
+          created_release=false
+          trap - ERR
