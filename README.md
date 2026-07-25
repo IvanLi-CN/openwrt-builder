@@ -17,6 +17,10 @@ scripts/check-package-set.py --version lite --device x86_64
 scripts/build.sh lite x86_64
 ```
 
+## Deployment
+
+- [Deploy on Proxmox VE 9 as a VM](docs/deploy-pve-9-vm.md)
+
 ## Pre-release downloads
 
 Firmware builds are published as GitHub pre-releases. Download the image that
