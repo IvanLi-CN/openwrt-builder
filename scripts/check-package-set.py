@@ -117,7 +117,9 @@ def main() -> int:
         "luci-app-argon-config", "luci-theme-argon", "luci-app-mosdns", "luci-app-netdata",
         "luci-app-netspeedtest", "luci-app-nikki", "luci-app-openclash", "luci-app-ramfree",
         "luci-app-socat", "luci-app-zerotier", "mihomo-meta", "nikki", "kmod-ngbe",
-        "kmod-sound-hda-intel-x86-64", "kmod-txgbe", "kmod-wangxun-libwx",
+        "kmod-sound-core-x86-64", "kmod-sound-hda-codec-realtek-x86-64",
+        "kmod-sound-hda-core-x86-64", "kmod-sound-hda-intel-x86-64", "kmod-txgbe",
+        "kmod-wangxun-libwx",
     }
     if providers != expected_component_providers:
         errors.append("component providers do not match the declared custom package source set")
