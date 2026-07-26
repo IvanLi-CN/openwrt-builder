@@ -4,9 +4,10 @@
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
+include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/wangxun-libwx
-  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  SUBMENU:=Network Devices
   TITLE:=Wangxun Ethernet shared library
   DEPENDS:=@PCI_SUPPORT
   KCONFIG:=CONFIG_LIBWX
@@ -21,7 +22,7 @@ endef
 $(eval $(call KernelPackage,wangxun-libwx))
 
 define KernelPackage/ngbe
-  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  SUBMENU:=Network Devices
   TITLE:=Wangxun GbE PCI Express adapters
   DEPENDS:=@PCI_SUPPORT +kmod-phylink +kmod-wangxun-libwx
   KCONFIG:=CONFIG_NGBE
@@ -36,7 +37,7 @@ endef
 $(eval $(call KernelPackage,ngbe))
 
 define KernelPackage/txgbe
-  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  SUBMENU:=Network Devices
   TITLE:=Wangxun 10GbE PCI Express adapters
   DEPENDS:=@PCI_SUPPORT +kmod-i2c-designware-platform +kmod-pcs-xpcs +kmod-phylink +kmod-sfp +kmod-wangxun-libwx
   KCONFIG:=CONFIG_TXGBE
@@ -51,7 +52,7 @@ endef
 $(eval $(call KernelPackage,txgbe))
 
 define KernelPackage/sound-hda-intel-x86-64
-  SUBMENU:=$(SOUND_MENU)
+  SUBMENU:=Sound
   TITLE:=HD Audio Intel driver for x86_64
   DEPENDS:=@TARGET_x86_64 +kmod-sound-hda-core
   KCONFIG:= \

@@ -99,7 +99,8 @@ jobs:
         run: |
           export WORKDIR="$GITHUB_WORKSPACE/work"
           export DL_DIR="$GITHUB_WORKSPACE/dl"
-          export JOBS="$(nproc)"
+          jobs="$(nproc)"
+          export JOBS="$jobs"
           scripts/build.sh "$BUILD_VERSION" "$BUILD_DEVICE"
       - name: Collect artifacts
         run: |
