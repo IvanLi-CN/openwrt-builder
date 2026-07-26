@@ -1,22 +1,19 @@
 {
-  "version": 1,
-  "policy": "Official OpenWrt 25.12 feeds plus package-specific upstream repositories. Broad third-party feed collections are not allowed.",
+  "version": 2,
+  "policy": "Official OpenWrt 25.12 feeds plus selected package directories from maintained upstream repositories. Broad third-party feed collections are not allowed.",
   "openwrt": {
     "repo": "https://github.com/openwrt/openwrt.git",
-    "ref": "v25.12.2",
+    "series": "25.12",
     "feeds_ref": "openwrt-25.12"
   },
   "components": [
-    {"name": "luci-theme-argon", "repo": "https://github.com/sbwml/luci-theme-argon.git", "ref": "openwrt-25.12", "paths": ["luci-theme-argon", "luci-app-argon-config"], "destination": "package/custom"},
-    {"name": "luci-app-mosdns", "repo": "https://github.com/sbwml/luci-app-mosdns.git", "ref": "v5", "paths": ["."], "destination": "package/custom/luci-app-mosdns"},
-    {"name": "luci-app-netdata", "repo": "https://github.com/muink/luci-app-netdata.git", "ref": "master", "paths": ["."], "destination": "package/custom/luci-app-netdata"},
-    {"name": "luci-app-netspeedtest", "repo": "https://github.com/muink/luci-app-netspeedtest.git", "ref": "master", "paths": ["."], "destination": "package/custom/luci-app-netspeedtest"},
-    {"name": "luci-app-nikki", "repo": "https://github.com/nikkinikki-org/OpenWrt-nikki.git", "ref": "main", "paths": ["luci-app-nikki", "nikki", "mihomo-meta"], "destination": "package/custom"},
-    {"name": "luci-app-openclash", "repo": "https://github.com/vernesong/OpenClash.git", "ref": "master", "paths": ["luci-app-openclash"], "destination": "package/custom"},
-    {"name": "luci-app-tailscale", "repo": "https://github.com/asvow/luci-app-tailscale.git", "ref": "main", "paths": ["."], "destination": "package/custom/luci-app-tailscale"},
-    {"name": "luci-app-socat", "repo": "https://github.com/chenmozhijin/luci-app-socat.git", "ref": "main", "paths": ["."], "destination": "package/custom/luci-app-socat"},
-    {"name": "luci-app-wolplus", "repo": "https://github.com/animegasan/luci-app-wolplus.git", "ref": "main", "paths": ["."], "destination": "package/custom/luci-app-wolplus"},
-    {"name": "luci-app-ramfree", "repo": "local", "ref": "local", "paths": ["packages/luci-app-ramfree"], "destination": "package/custom/luci-app-ramfree"},
-    {"name": "luci-app-zerotier", "repo": "local", "ref": "local", "paths": ["packages/luci-app-zerotier"], "destination": "package/custom/luci-app-zerotier"}
+    {"name": "luci-theme-argon", "repo": "https://github.com/sbwml/luci-theme-argon.git", "ref": "openwrt-25.12", "paths": ["luci-theme-argon", "luci-app-argon-config"], "destination": "package/custom", "provides": ["luci-app-argon-config", "luci-theme-argon"], "source_tier": "package-upstream"},
+    {"name": "luci-app-mosdns", "repo": "https://github.com/sbwml/luci-app-mosdns.git", "ref": "v5", "paths": ["."], "destination": "package/custom/luci-app-mosdns", "provides": ["luci-app-mosdns"], "source_tier": "package-upstream"},
+    {"name": "lean-luci-network-apps", "repo": "https://github.com/coolsnowwolf/luci.git", "ref": "openwrt-25.12", "paths": ["applications/luci-app-netdata", "applications/luci-app-zerotier"], "destination": "package/custom", "provides": ["luci-app-netdata", "luci-app-zerotier"], "source_tier": "selected-directory"},
+    {"name": "luci-app-netspeedtest", "repo": "https://github.com/muink/luci-app-netspeedtest.git", "ref": "master", "paths": ["."], "destination": "package/custom/luci-app-netspeedtest", "provides": ["luci-app-netspeedtest"], "source_tier": "package-upstream"},
+    {"name": "luci-app-nikki", "repo": "https://github.com/nikkinikki-org/OpenWrt-nikki.git", "ref": "main", "paths": ["luci-app-nikki", "nikki", "mihomo-meta"], "destination": "package/custom", "provides": ["luci-app-nikki", "mihomo-meta", "nikki"], "source_tier": "package-upstream"},
+    {"name": "luci-app-openclash", "repo": "https://github.com/vernesong/OpenClash.git", "ref": "master", "paths": ["luci-app-openclash"], "destination": "package/custom", "provides": ["luci-app-openclash"], "source_tier": "package-upstream"},
+    {"name": "luci-app-socat", "repo": "https://github.com/chenmozhijin/luci-app-socat.git", "ref": "main", "paths": ["."], "destination": "package/custom/luci-app-socat", "provides": ["luci-app-socat"], "source_tier": "package-upstream"},
+    {"name": "luci-app-ramfree", "repo": "local", "ref": "local", "paths": ["packages/luci-app-ramfree"], "destination": "package/custom/luci-app-ramfree", "provides": ["luci-app-ramfree"], "source_tier": "local"}
   ]
 }

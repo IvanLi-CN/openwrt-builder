@@ -19,15 +19,26 @@ on:
         type: choice
         options:
           - x86_64
-          - nanopi-r4s
-          - nanopi-r5s
+      build_options:
+        description: Shell-quoted KEY=value build options (for example, BUILD_FAST=y NO_APPS=n)
+        required: true
+        default: BUILD_FAST=y
+        type: string
       publish_release:
         description: Publish build outputs to a GitHub Release
         required: true
-        default: false
+        default: true
         type: boolean
+      release_channel:
+        description: GitHub Release channel
+        required: true
+        default: prerelease
+        type: choice
+        options:
+          - prerelease
+          - stable
       release_tag:
-        description: Release tag to publish when publish_release is true
+        description: Optional release tag; leave blank for the timestamped default
         required: false
         type: string
 
@@ -37,19 +48,35 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [lite, server]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Policy check
-        run: python3 scripts/check-component-policy.py
-      - name: Package availability check
-        run: python3 scripts/check-package-set.py --version lite --device x86_64
+      - name: Install lint tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends shellcheck
+      - name: Unit and policy checks
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 scripts/check-component-policy.py
+          python3 scripts/check-package-set.py --version "${{ matrix.version }}" --device x86_64 --verify-upstreams
+          python3 scripts/check-package-set.py --version "${{ matrix.version }}" --device x86_64 --no-apps
+      - name: Lint shell and workflow files
+        run: |
+          shellcheck scripts/*.sh
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo rhysd/actionlint:latest
 
   build:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    env:
+      BUILD_VERSION: ${{ github.event_name == 'pull_request' && 'server' || inputs.version }}
+      BUILD_OPTIONS: ${{ github.event_name == 'pull_request' && 'BUILD_FAST=y' || inputs.build_options }}
+      BUILD_DEVICE: x86_64
     steps:
       - uses: actions/checkout@v4
       - name: Free disk space
@@ -73,56 +100,62 @@ jobs:
           export WORKDIR="$GITHUB_WORKSPACE/work"
           export DL_DIR="$GITHUB_WORKSPACE/dl"
           export JOBS="$(nproc)"
-          scripts/build.sh "${{ inputs.version }}" "${{ inputs.device }}"
+          scripts/build.sh "$BUILD_VERSION" "$BUILD_DEVICE"
       - name: Collect artifacts
         run: |
-          out="artifacts/${{ inputs.version }}-${{ inputs.device }}"
-          python3 scripts/collect-artifacts.py "$GITHUB_WORKSPACE/work/openwrt" "${{ inputs.device }}" "$out"
+          out="artifacts/${BUILD_VERSION}-${BUILD_DEVICE}"
+          python3 scripts/collect-artifacts.py "$GITHUB_WORKSPACE/work/openwrt" "$BUILD_DEVICE" "$out"
+      - name: QEMU boot check
+        run: |
+          mapfile -t images < <(find "artifacts/${BUILD_VERSION}-${BUILD_DEVICE}" -maxdepth 1 -type f -name '*ext4-combined*.img.gz' | sort)
+          if [ "${#images[@]}" -eq 0 ]; then
+            echo "no ext4 combined image available for QEMU boot check" >&2
+            exit 1
+          fi
+          TIMEOUT=120 scripts/boot-qemu-x86_64.sh "${images[0]}"
       - uses: actions/upload-artifact@v4
         with:
-          name: openwrt-${{ inputs.version }}-${{ inputs.device }}
-          path: artifacts/${{ inputs.version }}-${{ inputs.device }}
-          retention-days: 1
+          name: openwrt-${{ env.BUILD_VERSION }}-${{ env.BUILD_DEVICE }}
+          path: artifacts/${{ env.BUILD_VERSION }}-${{ env.BUILD_DEVICE }}
+          retention-days: 7
       - name: Publish release
-        if: ${{ inputs.publish_release }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release }}
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
-          VERSION: ${{ inputs.version }}
-          DEVICE: ${{ inputs.device }}
-          OUT_DIR: artifacts/${{ inputs.version }}-${{ inputs.device }}
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
+          OUT_DIR: artifacts/${{ env.BUILD_VERSION }}-${{ env.BUILD_DEVICE }}
         run: |
           set -euo pipefail
-          if [ -z "$RELEASE_TAG" ]; then
-            RELEASE_TAG="openwrt-${VERSION}-${DEVICE}-${GITHUB_RUN_NUMBER}"
+          metadata="$OUT_DIR/buildinfo/openwrt-builder-metadata.json"
+          if [ ! -s "$metadata" ]; then
+            echo "missing build metadata" >&2
+            exit 1
           fi
-          title="OpenWrt ${VERSION} ${DEVICE} ${GITHUB_RUN_NUMBER}"
+          if [ -z "$RELEASE_TAG" ]; then
+            timestamp="$(TZ=Asia/Shanghai date +%Y%m%d-%H%M)"
+            RELEASE_TAG="$(python3 scripts/render-release-notes.py --metadata "$metadata" --format tag --flavor "$BUILD_VERSION" --device "$BUILD_DEVICE" --timestamp "$timestamp")"
+          fi
           notes="$(mktemp)"
-          {
-            echo "OpenWrt ${VERSION} ${DEVICE} build."
-            echo
-            echo "Build evidence:"
-            echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-            echo "- Commit: ${GITHUB_SHA}"
-            echo
-            echo "Verify downloads with sha256sums.txt."
-          } > "$notes"
+          python3 scripts/render-release-notes.py \
+            --metadata "$metadata" \
+            --format notes \
+            --flavor "$BUILD_VERSION" \
+            --device "$BUILD_DEVICE" \
+            --workflow-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            --commit "$GITHUB_SHA" > "$notes"
 
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             echo "release already exists: $RELEASE_TAG" >&2
             exit 1
           fi
-
           for required_asset in "$OUT_DIR/sha256sums.txt" "$OUT_DIR/buildinfo.tar.gz"; do
             if [ ! -s "$required_asset" ]; then
               echo "missing required release asset: $required_asset" >&2
               exit 1
             fi
           done
-
-          if ! awk -F '  ' '
-            NF != 2 || length($1) != 64 || $1 !~ /^[[:xdigit:]]+$/ || $2 == "" || $2 ~ /\// { exit 1 }
-          ' "$OUT_DIR/sha256sums.txt"; then
+          if ! awk -F '  ' 'NF != 2 || length($1) != 64 || $1 !~ /^[[:xdigit:]]+$/ || $2 == "" || $2 ~ /\// { exit 1 }' "$OUT_DIR/sha256sums.txt"; then
             echo "invalid sha256sums.txt" >&2
             exit 1
           fi
@@ -140,11 +173,11 @@ jobs:
             echo "release assets must be the verified top-level files only" >&2
             exit 1
           fi
+
           release_assets=("$OUT_DIR/sha256sums.txt")
           for asset_name in "${release_asset_names[@]}"; do
             release_assets+=("$OUT_DIR/$asset_name")
           done
-
           created_release=false
           cleanup_draft() {
             if [ "$created_release" = true ]; then
@@ -152,10 +185,13 @@ jobs:
             fi
           }
           trap cleanup_draft ERR
-
-          gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "$title" --notes-file "$notes" --draft --latest=false
+          gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "OpenWrt $BUILD_VERSION $BUILD_DEVICE" --notes-file "$notes" --draft --latest=false
           created_release=true
           gh release upload "$RELEASE_TAG" "${release_assets[@]}" --clobber
-          gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false
+          if [ "$RELEASE_CHANNEL" = stable ]; then
+            gh release edit "$RELEASE_TAG" --draft=false --latest
+          else
+            gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false
+          fi
           created_release=false
           trap - ERR
