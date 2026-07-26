@@ -25,7 +25,7 @@ Build the repository's custom firmware flavor on the OpenWrt 25.12 release line 
 
 - `lite` is the default profile; `server` is a strict package superset.
 - `NO_APPS=y` keeps base LuCI, Argon, drivers, filesystems, and system tools while removing optional applications and their application-only runtimes.
-- `build_options` accepts shell-quoted `KEY=value` tokens as data. It may supply arbitrary business variables but cannot replace source refs, paths, jobs, GitHub execution context, or credential values.
+- `build_options` accepts shell-quoted `KEY=value` tokens as data. It may supply arbitrary business variables but cannot replace source refs, paths, jobs, Git environment, GitHub execution context, or credential values.
 - Component refs are named branches or tags. The build records the resolved commits for traceability without treating them as future pins.
 - Manual releases default to prerelease. Stable releases are GitHub Latest. Empty tags use the resolved OpenWrt tag, flavor, x86_64, and an Asia/Shanghai timestamp.
 

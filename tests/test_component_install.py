@@ -1,4 +1,5 @@
 import importlib.util
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -23,3 +24,17 @@ class ComponentInstallTest(unittest.TestCase):
 
         components = json.loads((ROOT / "config" / "components.lock.json").read_text())["components"]
         INSTALL_COMPONENTS.validate_destinations(components)
+
+    def test_rewrites_selected_lean_luci_includes_for_the_official_feed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package_root = Path(directory) / "package" / "custom"
+            for package in ("luci-app-netdata", "luci-app-zerotier"):
+                makefile = package_root / package / "Makefile"
+                makefile.parent.mkdir(parents=True)
+                makefile.write_text("include ../../luci.mk\n")
+
+            INSTALL_COMPONENTS.patch_openwrt_25_12_compat(Path(directory))
+
+            for package in ("luci-app-netdata", "luci-app-zerotier"):
+                makefile = package_root / package / "Makefile"
+                self.assertIn("include $(TOPDIR)/feeds/luci/luci.mk", makefile.read_text())

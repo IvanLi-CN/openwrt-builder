@@ -42,6 +42,7 @@ qemu-system-x86_64 \
   >"$QEMU_LOG" 2>&1 &
 QEMU_PID=$!
 
+# shellcheck disable=SC2317 # Invoked by the EXIT trap below.
 cleanup() {
   if kill -0 "$QEMU_PID" >/dev/null 2>&1; then
     kill "$QEMU_PID" >/dev/null 2>&1 || true

@@ -14,6 +14,7 @@
     {"name": "luci-app-nikki", "repo": "https://github.com/nikkinikki-org/OpenWrt-nikki.git", "ref": "main", "paths": ["luci-app-nikki", "nikki", "mihomo-meta"], "destination": "package/custom", "provides": ["luci-app-nikki", "mihomo-meta", "nikki"], "source_tier": "package-upstream"},
     {"name": "luci-app-openclash", "repo": "https://github.com/vernesong/OpenClash.git", "ref": "master", "paths": ["luci-app-openclash"], "destination": "package/custom", "provides": ["luci-app-openclash"], "source_tier": "package-upstream"},
     {"name": "luci-app-socat", "repo": "https://github.com/chenmozhijin/luci-app-socat.git", "ref": "main", "paths": ["."], "destination": "package/custom/luci-app-socat", "provides": ["luci-app-socat"], "source_tier": "package-upstream"},
-    {"name": "luci-app-ramfree", "repo": "local", "ref": "local", "paths": ["packages/luci-app-ramfree"], "destination": "package/custom/luci-app-ramfree", "provides": ["luci-app-ramfree"], "source_tier": "local"}
+    {"name": "luci-app-ramfree", "repo": "local", "ref": "local", "paths": ["packages/luci-app-ramfree"], "destination": "package/custom/luci-app-ramfree", "provides": ["luci-app-ramfree"], "source_tier": "local"},
+    {"name": "kmod-x86-compat", "repo": "local", "ref": "local", "paths": ["packages/kmod-x86-compat"], "destination": "package/custom/kmod-x86-compat", "provides": ["kmod-ngbe", "kmod-sound-hda-intel-x86-64", "kmod-txgbe", "kmod-wangxun-libwx"], "source_tier": "local"}
   ]
 }

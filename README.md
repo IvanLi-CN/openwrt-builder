@@ -8,7 +8,7 @@ OpenWrt 25.12 x86_64 firmware builder. It publishes one repository-defined custo
 - Builds only `x86_64`; `server` is a strict superset of `lite`.
 - Keeps the custom LuCI stack: Argon, MosDNS, Netdata, Nikki, OpenClash, Tailscale, ZeroTier, Wake-on-LAN, and the other enabled `openwrt-lite` custom features.
 - Uses official packages first, selected Lean 25.12 LuCI directories for Netdata and ZeroTier, then package-specific upstream repositories. Third-party sources follow branch/tag refs and never commit SHA pins.
-- Uses explicit x86 driver, USB, filesystem, zram, BBR, and firewall4 flow-offload selections instead of `ALL_KMODS`, `ALL_NONSHARED`, or private kernel patches.
+- Uses explicit x86 driver, USB, filesystem, zram, BBR, and firewall4 flow-offload selections instead of `ALL_KMODS`, `ALL_NONSHARED`, or private kernel patches. The small local compatibility recipes expose only OpenWrt's in-tree Wangxun NGBE/TXGBE and Intel HDA modules where the 25.12 package set does not expose them for x86_64.
 
 ## Build locally
 
@@ -19,7 +19,7 @@ python3 scripts/check-package-set.py --version lite --device x86_64 --verify-ups
 BUILD_OPTIONS='BUILD_FAST=y' scripts/build.sh lite x86_64
 ```
 
-`BUILD_OPTIONS` accepts a shell-quoted list of `KEY=value` assignments. It is parsed as data and is never sourced or evaluated. Existing build variables such as `LAN`, `BUILD_FAST`, and `NO_APPS` remain available; build source, work directory, job count, GitHub context, and credential variables are protected.
+`BUILD_OPTIONS` accepts a shell-quoted list of `KEY=value` assignments. It is parsed as data and is never sourced or evaluated. Existing build variables such as `LAN`, `BUILD_FAST`, and `NO_APPS` remain available; build source, work directory, job count, Git environment, GitHub context, and credential variables are protected.
 
 `NO_APPS=y` retains LuCI, Argon, drivers, filesystems, and system tools while removing optional LuCI applications and their application-only runtimes. `CONFIG_CUSTOM` is intentionally not an option: the custom package flavor is fixed by this repository.
 

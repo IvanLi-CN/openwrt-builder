@@ -17,7 +17,14 @@ class BuildOptionsTest(unittest.TestCase):
         self.assertEqual(options["LITERAL"], "$(not executed)")
 
     def test_rejects_shell_fragments_and_protected_variables(self):
-        for value in ("NO_APPS", "OPENWRT_REF=v25.12.5", "GITHUB_TOKEN=value", "A=1 A=2"):
+        for value in (
+            "NO_APPS",
+            "OPENWRT_REF=v25.12.5",
+            "GITHUB_TOKEN=value",
+            "GIT_CONFIG_COUNT=1",
+            "GIT_CONFIG_KEY_0=url.https://untrusted.invalid.insteadOf",
+            "A=1 A=2",
+        ):
             with self.subTest(value=value):
                 with self.assertRaises(BuildOptionError):
                     parse_build_options(value)

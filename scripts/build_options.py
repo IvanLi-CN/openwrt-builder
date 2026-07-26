@@ -30,7 +30,8 @@ RESERVED_NAMES = frozenset(
         "WORKDIR",
     }
 )
-RESERVED_PREFIXES = ("ACTIONS_", "GITHUB_", "RUNNER_")
+# GIT_CONFIG_* and related variables can alter clone, fetch, and ls-remote behavior.
+RESERVED_PREFIXES = ("ACTIONS_", "GITHUB_", "GIT_", "RUNNER_")
 
 
 class BuildOptionError(ValueError):

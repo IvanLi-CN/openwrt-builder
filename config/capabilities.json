@@ -11,7 +11,7 @@
     "kmod-fs-ntfs3", "kmod-fs-xfs", "kmod-igb", "kmod-igc", "kmod-mlx4-core",
     "kmod-mlx5-core", "kmod-mt76x2", "kmod-mt7921e", "kmod-mt7921u", "kmod-ngbe",
     "kmod-nft-offload", "kmod-nvme", "kmod-r8125", "kmod-r8126", "kmod-r8168",
-    "kmod-r8169", "kmod-sound-hda-intel", "kmod-tcp-bbr", "kmod-txgbe",
+    "kmod-r8169", "kmod-sound-hda-intel-x86-64", "kmod-tcp-bbr", "kmod-txgbe",
     "kmod-usb-storage-uas", "kmod-usb3", "luci", "luci-theme-argon", "zram-swap"
   ],
   "forbidden_config": [

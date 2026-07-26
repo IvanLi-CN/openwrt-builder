@@ -113,12 +113,13 @@ def main() -> int:
         errors.append("non-x86 target configuration is not allowed")
 
     providers = {package for component in lock["components"] for package in component["provides"]}
-    expected_external = {
+    expected_component_providers = {
         "luci-app-argon-config", "luci-theme-argon", "luci-app-mosdns", "luci-app-netdata",
         "luci-app-netspeedtest", "luci-app-nikki", "luci-app-openclash", "luci-app-ramfree",
-        "luci-app-socat", "luci-app-zerotier", "mihomo-meta", "nikki",
+        "luci-app-socat", "luci-app-zerotier", "mihomo-meta", "nikki", "kmod-ngbe",
+        "kmod-sound-hda-intel-x86-64", "kmod-txgbe", "kmod-wangxun-libwx",
     }
-    if providers != expected_external:
+    if providers != expected_component_providers:
         errors.append("component providers do not match the declared custom package source set")
     if args.verify_upstreams:
         errors.extend(verify_upstreams(lock))

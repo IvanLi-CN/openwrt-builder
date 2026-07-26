@@ -27,11 +27,15 @@ def copy_path(src: Path, dst: Path):
 
 
 def patch_openwrt_25_12_compat(openwrt_dir: Path):
-    netdata_makefile = openwrt_dir / "package" / "custom" / "luci-app-netdata" / "Makefile"
-    if netdata_makefile.exists():
-        text = netdata_makefile.read_text()
-        text = text.replace("+netdata-ssl", "+netdata")
-        netdata_makefile.write_text(text)
+    for package in ("luci-app-netdata", "luci-app-zerotier"):
+        makefile = openwrt_dir / "package" / "custom" / package / "Makefile"
+        if makefile.exists():
+            text = makefile.read_text()
+            # Lean's selected applications expect to be nested below its LuCI tree.
+            text = text.replace("include ../../luci.mk", "include $(TOPDIR)/feeds/luci/luci.mk")
+            if package == "luci-app-netdata":
+                text = text.replace("+netdata-ssl", "+netdata")
+            makefile.write_text(text)
 
 
 def destination_paths(component):
