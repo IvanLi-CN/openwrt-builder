@@ -54,7 +54,7 @@ $(eval $(call KernelPackage,txgbe))
 define KernelPackage/sound-hda-intel-x86-64
   SUBMENU:=Sound
   TITLE:=HD Audio Intel driver for x86_64
-  DEPENDS:=@TARGET_x86_64 +kmod-sound-hda-core
+  DEPENDS:=@PCI_SUPPORT +kmod-sound-hda-core
   KCONFIG:= \
     CONFIG_SOUND_PCI \
     CONFIG_SND_HDA_INTEL
