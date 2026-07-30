@@ -23,7 +23,7 @@ on:
           - nanopi-r5s
       lan:
         description: Default LAN IPv4 address
-        required: true
+        required: false
         default: 192.168.31.1
         type: string
       publish_release:

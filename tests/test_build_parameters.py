@@ -28,6 +28,7 @@ class BuildParametersTest(unittest.TestCase):
         workflow = WORKFLOW.read_text()
 
         self.assertIn("      lan:\n", workflow)
+        self.assertIn("        required: false\n", workflow)
         self.assertIn("        default: 192.168.31.1\n", workflow)
         self.assertIn('          export LAN="${{ inputs.lan }}"', workflow)
 
