@@ -21,6 +21,11 @@ on:
           - x86_64
           - nanopi-r4s
           - nanopi-r5s
+      lan:
+        description: Default LAN IPv4 address
+        required: true
+        default: 192.168.31.1
+        type: string
       publish_release:
         description: Publish build outputs to a GitHub Release
         required: true
@@ -73,6 +78,7 @@ jobs:
           export WORKDIR="$GITHUB_WORKSPACE/work"
           export DL_DIR="$GITHUB_WORKSPACE/dl"
           export JOBS="$(nproc)"
+          export LAN="${{ inputs.lan }}"
           scripts/build.sh "${{ inputs.version }}" "${{ inputs.device }}"
       - name: Collect artifacts
         run: |

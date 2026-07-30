@@ -43,7 +43,7 @@ The expected interface order is:
 
 | PVE device | OpenWrt device | Role | Suggested bridge |
 | --- | --- | --- | --- |
-| `net0` | `eth0` | LAN, static `10.0.0.1/24` | `vmbr1` |
+| `net0` | `eth0` | LAN, static `192.168.31.1/24` | `vmbr1` |
 | `net1` | `eth1` | WAN, DHCP client | `vmbr0` |
 
 `vmbr1` can be an isolated bridge with no physical port for testing. Attach a
@@ -129,8 +129,8 @@ ifstatus wan
 
 The expected defaults are:
 
-- LuCI: `http://10.0.0.1/` from the LAN side;
-- LAN: `eth0`, static `10.0.0.1/24`;
+- LuCI: `http://192.168.31.1/` from the LAN side;
+- LAN: `eth0`, static `192.168.31.1/24`;
 - WAN: `eth1`, DHCP client.
 
 To leave `qm terminal`, press `Ctrl+O`.
