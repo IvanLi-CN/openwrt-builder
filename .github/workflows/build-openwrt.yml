@@ -71,9 +71,9 @@ jobs:
           path: |
             dl
             .ccache
-          key: openwrt-x86-cache-v1-${{ runner.os }}-x86_64-${{ hashFiles('components.lock.json', 'config/**', 'files/**', 'scripts/build.sh') }}
+          key: openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ inputs.version }}-${{ hashFiles('config/components.lock.json', 'config/**', 'files/**', 'scripts/build.sh') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            openwrt-x86-cache-v1-${{ runner.os }}-x86_64-
+            openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ inputs.version }}-${{ hashFiles('config/components.lock.json', 'config/**', 'files/**', 'scripts/build.sh') }}-
       - name: Configure x86 compiler cache
         if: ${{ inputs.device == 'x86_64' }}
         run: echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" >> "$GITHUB_ENV"
@@ -82,9 +82,12 @@ jobs:
         continue-on-error: true
         env:
           CACHE_HIT: ${{ steps.x86-build-cache.outputs.cache-hit }}
+          CACHE_MATCHED_KEY: ${{ steps.x86-build-cache.outputs.cache-matched-key }}
         run: |
           if [ "$CACHE_HIT" = "true" ]; then
-            echo "x86 build cache: hit"
+            echo "x86 build cache: exact hit"
+          elif [ -n "$CACHE_MATCHED_KEY" ]; then
+            echo "x86 build cache: restored fallback"
           else
             echo "x86 build cache: miss or unavailable"
           fi
@@ -126,14 +129,14 @@ jobs:
           fi
           du -sh "$DL_DIR" "$CCACHE_DIR" 2>/dev/null || true
       - name: Save x86 build cache
-        if: ${{ success() && inputs.device == 'x86_64' && steps.x86-build-cache.outputs.cache-hit != 'true' }}
+        if: ${{ success() && inputs.device == 'x86_64' }}
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
           path: |
             dl
             .ccache
-          key: openwrt-x86-cache-v1-${{ runner.os }}-x86_64-${{ hashFiles('components.lock.json', 'config/**', 'files/**', 'scripts/build.sh') }}
+          key: openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ inputs.version }}-${{ hashFiles('config/components.lock.json', 'config/**', 'files/**', 'scripts/build.sh') }}-${{ github.run_id }}-${{ github.run_attempt }}
       - uses: actions/upload-artifact@v4
         with:
           name: openwrt-${{ inputs.version }}-${{ inputs.device }}
