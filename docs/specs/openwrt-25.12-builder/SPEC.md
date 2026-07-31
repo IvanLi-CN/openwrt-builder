@@ -27,4 +27,6 @@ Build a replacement for the current firmware line on OpenWrt `25.12` without cha
 
 ## Visual Evidence
 
-None. This work changes build inputs and repo layout, not a rendered UI.
+PR: none
+
+This work changes build inputs and repo layout, not a rendered UI.
