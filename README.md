@@ -36,7 +36,7 @@ The release workflow validates both profile configurations. Pull requests additi
 
 ## Releases
 
-Workflow dispatch requires `build_options` and defaults it to `BUILD_FAST=y`. Publishing defaults to `prerelease`; select `stable` to make the result GitHub Latest. An empty release tag becomes:
+Workflow dispatch requires `build_options` and defaults it to `BUILD_FAST=y`. It accepts shell-quoted `KEY=value` data without evaluation; source, path, GitHub/Git, shell-startup, Make-control, dynamic-loader, and interpreter-runtime variables are reserved. Publishing defaults to `prerelease`; select `stable` to make the result GitHub Latest. An empty release tag becomes:
 
 ```text
 v<resolved-openwrt-version>-<lite|server>-x86_64-YYYYMMDD-HHMM

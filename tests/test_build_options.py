@@ -23,6 +23,9 @@ class BuildOptionsTest(unittest.TestCase):
             "GITHUB_TOKEN=value",
             "GIT_CONFIG_COUNT=1",
             "GIT_CONFIG_KEY_0=url.https://untrusted.invalid.insteadOf",
+            "BASH_ENV=/tmp/injected.sh",
+            "MAKEFLAGS=--eval=$(shell touch /tmp/injected)",
+            "LD_PRELOAD=/tmp/injected.so",
             "A=1 A=2",
         ):
             with self.subTest(value=value):

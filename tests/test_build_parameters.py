@@ -59,6 +59,7 @@ class BuildParametersTest(unittest.TestCase):
         self.assertIn("permissions:\n  contents: read", workflow)
         self.assertNotIn("contents: write", build_job)
         self.assertIn("permissions:\n      contents: write", release_job)
+        self.assertIn("needs: [validate, build]", release_job)
         self.assertNotIn("Publish release", build_job)
 
 

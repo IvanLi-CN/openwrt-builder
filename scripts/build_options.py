@@ -13,25 +13,41 @@ RESERVED_NAMES = frozenset(
     {
         "BUILD_METADATA_FILE",
         "BUILD_OPTIONS",
+        "BASH_ENV",
         "COMPONENT_CACHE",
+        "CONFIG_SHELL",
         "CONFIG_CUSTOM",
         "DL_DIR",
+        "ENV",
         "FEEDS_REF",
         "GH_TOKEN",
         "HOME",
+        "IFS",
         "JOBS",
+        "MAKEFILES",
+        "MAKEFLAGS",
+        "MAKE_SHELL",
+        "MFLAGS",
+        "NODE_OPTIONS",
         "OPENWRT_DIR",
         "OPENWRT_REPO",
         "OPENWRT_REF",
         "OPENWRT_SERIES",
         "PATH",
+        "PERL5LIB",
+        "PERL5OPT",
         "PYTHON",
+        "PYTHONHOME",
+        "PYTHONPATH",
         "RESOLVED_OPENWRT_REF",
+        "RUBYOPT",
+        "SHELL",
         "WORKDIR",
     }
 )
-# GIT_CONFIG_* and related variables can alter clone, fetch, and ls-remote behavior.
-RESERVED_PREFIXES = ("ACTIONS_", "GITHUB_", "GIT_", "RUNNER_")
+# These can alter shell startup, Make evaluation, dynamic loading, interpreter
+# imports, or GitHub/Git execution. Business variables remain unrestricted.
+RESERVED_PREFIXES = ("ACTIONS_", "BASH_", "DYLD_", "GCONV_", "GITHUB_", "GIT_", "LD_", "MAKE_", "RUNNER_")
 
 
 class BuildOptionError(ValueError):

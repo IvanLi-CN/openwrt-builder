@@ -9,3 +9,4 @@
 - Kept the image LAN default aligned with the existing PVE network and passed the optional workflow input through the build-step environment, allowing free-text `build_options` to retain precedence without shell evaluation.
 - Propagate malformed `build_options` failures before any source resolution and make minute-level automatic release tags collision-safe without reusing an existing release.
 - Separated write-authorized release publication from read-only PR builds and made post-defconfig package checks scan the resolved configuration for forbidden selections.
+- Required both validation and image/QEMU gates before release publication, and excluded execution-control environment variables from free-text build options.

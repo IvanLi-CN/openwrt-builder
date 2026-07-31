@@ -25,7 +25,7 @@ Build the repository's custom firmware flavor on the OpenWrt 25.12 release line 
 
 - `lite` is the default profile; `server` is a strict package superset.
 - `NO_APPS=y` keeps base LuCI, Argon, drivers, filesystems, and system tools while removing optional applications and their application-only runtimes.
-- `build_options` accepts shell-quoted `KEY=value` tokens as data. It may supply arbitrary business variables but cannot replace source refs, paths, jobs, Git environment, GitHub execution context, or credential values.
+- `build_options` accepts shell-quoted `KEY=value` tokens as data. It may supply arbitrary business variables but cannot replace source refs, paths, jobs, Git environment, GitHub execution context, credentials, shell startup, Make control, dynamic-loader, or interpreter-runtime variables.
 - Component refs are named branches or tags. The build records the resolved commits for traceability without treating them as future pins.
 - Manual releases default to prerelease. Stable releases are GitHub Latest. Empty tags use the resolved OpenWrt tag, flavor, x86_64, and an Asia/Shanghai timestamp; a collision appends the GitHub run number without overwriting the existing release.
 
@@ -34,7 +34,7 @@ Build the repository's custom firmware flavor on the OpenWrt 25.12 release line 
 - Device configuration exposes only `x86_64` with 64 MiB kernel and 1024 MiB rootfs partitions.
 - Static checks validate both profiles, source policy, source reachability, server superset behavior, forbidden historical patches, and `NO_APPS` composition.
 - After `make defconfig`, capability checks validate the actual selected package set.
-- PRs compile and QEMU boot `server/x86_64` with read-only repository permissions; a separate manual-only write-authorized job publishes only after the selected profile has passed its QEMU gate.
+- PRs compile and QEMU boot `server/x86_64` with read-only repository permissions; a separate manual-only write-authorized job publishes only after both profile validation and the selected profile's QEMU gate pass.
 - Each release contains checksum-verified firmware files, `sha256sums.txt`, and `buildinfo.tar.gz` with resolved source/version/option provenance.
 - The default LAN is `192.168.31.1`; manual builds may optionally supply a validated LAN input or set `LAN` through `build_options`.
 

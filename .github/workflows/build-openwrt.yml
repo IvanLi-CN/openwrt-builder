@@ -133,7 +133,7 @@ jobs:
 
   release:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release }}
-    needs: build
+    needs: [validate, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
