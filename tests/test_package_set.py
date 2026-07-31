@@ -54,3 +54,24 @@ class PackageSetTest(unittest.TestCase):
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("forbidden configuration is enabled: CONFIG_ALL_KMODS=y", result.stderr)
+
+    def test_resolved_config_ignores_disabled_non_x86_targets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            resolved_config = Path(directory) / ".config"
+            resolved_config.write_text("# CONFIG_TARGET_rockchip is not set\n")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK),
+                    "--version",
+                    "lite",
+                    "--device",
+                    "x86_64",
+                    "--resolved-config",
+                    str(resolved_config),
+                ],
+                text=True,
+                capture_output=True,
+            )
+
+        self.assertNotIn("non-x86 target configuration is not allowed", result.stderr)

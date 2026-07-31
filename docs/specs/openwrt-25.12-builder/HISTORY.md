@@ -10,3 +10,4 @@
 - Propagate malformed `build_options` failures before any source resolution and make minute-level automatic release tags collision-safe without reusing an existing release.
 - Separated write-authorized release publication from read-only PR builds and made post-defconfig package checks scan the resolved configuration for forbidden selections.
 - Required both validation and image/QEMU gates before release publication, and excluded execution-control environment variables from free-text build options.
+- Made post-defconfig target validation distinguish disabled Kconfig comments from enabled non-x86 target selections.

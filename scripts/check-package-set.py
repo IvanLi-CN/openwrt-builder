@@ -17,6 +17,7 @@ LOCK = CONFIG / "components.lock.json"
 DEVICES = CONFIG / "devices.json"
 CAPABILITIES = CONFIG / "capabilities.json"
 PACKAGE_RE = re.compile(r"^CONFIG_PACKAGE_([^=]+)=y$")
+ENABLED_TARGET_RE = re.compile(r"^CONFIG_TARGET_([^=]+)=y$", re.MULTILINE)
 
 
 def package_names(paths: list[Path]) -> set[str]:
@@ -109,7 +110,7 @@ def main() -> int:
     for forbidden in capabilities["forbidden_config"]:
         if forbidden in config_text:
             errors.append(f"forbidden configuration is enabled: {forbidden}")
-    if "rockchip" in config_text.lower():
+    if any("rockchip" in target.lower() for target in ENABLED_TARGET_RE.findall(config_text)):
         errors.append("non-x86 target configuration is not allowed")
 
     providers = {package for component in lock["components"] for package in component["provides"]}
