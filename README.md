@@ -25,9 +25,10 @@ leaving it unset preserves the normal compiler path.
 
 Manual GitHub Actions builds cache `dl/` and `.ccache/` only for `x86_64`.
 Cache restore and save failures fall back to a regular build, so cache
-availability does not affect the firmware result. The repository keeps the
-GitHub Actions default cache limit and retention policy; inspect the workflow
-log's cache-size line after a build before changing that policy.
+availability does not change the selected package configuration or image target.
+ccache is limited to 2 GiB before saving. GitHub Actions defaults to 10 GiB of
+cache storage per repository and evicts entries that are not accessed for more
+than 7 days; no additional cache storage is configured here.
 
 ## Deployment
 
