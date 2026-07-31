@@ -34,7 +34,7 @@ Build the repository's custom firmware flavor on the OpenWrt 25.12 release line 
 - Device configuration exposes only `x86_64` with 64 MiB kernel and 1024 MiB rootfs partitions.
 - Static checks validate both profiles, source policy, source reachability, server superset behavior, forbidden historical patches, and `NO_APPS` composition.
 - After `make defconfig`, capability checks validate the actual selected package set.
-- PRs compile and QEMU boot `server/x86_64`; manual builds QEMU boot the selected profile before publication.
+- PRs compile and QEMU boot `server/x86_64` with read-only repository permissions; a separate manual-only write-authorized job publishes only after the selected profile has passed its QEMU gate.
 - Each release contains checksum-verified firmware files, `sha256sums.txt`, and `buildinfo.tar.gz` with resolved source/version/option provenance.
 - The default LAN is `192.168.31.1`; manual builds may optionally supply a validated LAN input or set `LAN` through `build_options`.
 

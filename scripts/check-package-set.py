@@ -105,11 +105,11 @@ def main() -> int:
     if not lite < server:
         errors.append("server package set must be a strict superset of lite")
 
-    tracked = all_tracked_config()
+    config_text = args.resolved_config.read_text() if args.resolved_config else all_tracked_config()
     for forbidden in capabilities["forbidden_config"]:
-        if forbidden in tracked:
+        if forbidden in config_text:
             errors.append(f"forbidden configuration is enabled: {forbidden}")
-    if "rockchip" in tracked.lower():
+    if "rockchip" in config_text.lower():
         errors.append("non-x86 target configuration is not allowed")
 
     providers = {package for component in lock["components"] for package in component["provides"]}

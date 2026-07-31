@@ -8,3 +8,4 @@
 - Kept draft-first release publication and extended build provenance so a release can be checked against its source revisions, final configuration, and redacted input parameters.
 - Kept the image LAN default aligned with the existing PVE network and passed the optional workflow input through the build-step environment, allowing free-text `build_options` to retain precedence without shell evaluation.
 - Propagate malformed `build_options` failures before any source resolution and make minute-level automatic release tags collision-safe without reusing an existing release.
+- Separated write-authorized release publication from read-only PR builds and made post-defconfig package checks scan the resolved configuration for forbidden selections.

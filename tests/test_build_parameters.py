@@ -48,8 +48,18 @@ class BuildParametersTest(unittest.TestCase):
         workflow = WORKFLOW.read_text()
 
         self.assertIn("concurrency:\n", workflow)
+        self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", workflow)
         self.assertIn("AUTO_RELEASE_TAG=true", workflow)
         self.assertIn('RELEASE_TAG="${RELEASE_TAG}-r${GITHUB_RUN_NUMBER}"', workflow)
+
+    def test_release_permissions_are_isolated_from_pr_builds(self):
+        workflow = WORKFLOW.read_text()
+        build_job, release_job = workflow.split("  release:\n", 1)
+
+        self.assertIn("permissions:\n  contents: read", workflow)
+        self.assertNotIn("contents: write", build_job)
+        self.assertIn("permissions:\n      contents: write", release_job)
+        self.assertNotIn("Publish release", build_job)
 
 
 if __name__ == "__main__":

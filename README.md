@@ -32,7 +32,7 @@ BUILD_OPTIONS='BUILD_FAST=y' scripts/build.sh lite x86_64
 - `lite`: common custom router profile.
 - `server`: lite plus server diagnostics, L2TP support, Docker, and Dockerman.
 
-The release workflow validates both profile configurations. Pull requests additionally compile and QEMU boot the maximal `server/x86_64` image. Manual builds compile and boot the selected profile before any release can be created.
+The release workflow validates both profile configurations. Pull requests additionally compile and QEMU boot the maximal `server/x86_64` image with read-only repository permissions. Manual builds compile and boot the selected profile before a separate write-authorized release job can create a release.
 
 ## Releases
 
