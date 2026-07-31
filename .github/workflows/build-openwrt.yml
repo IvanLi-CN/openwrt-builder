@@ -21,6 +21,11 @@ on:
           - x86_64
           - nanopi-r4s
           - nanopi-r5s
+      lan:
+        description: Default LAN IPv4 address
+        required: false
+        default: 192.168.31.1
+        type: string
       publish_release:
         description: Publish build outputs to a GitHub Release
         required: true
@@ -69,6 +74,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Build image
+        env:
+          LAN: ${{ inputs.lan }}
         run: |
           export WORKDIR="$GITHUB_WORKSPACE/work"
           export DL_DIR="$GITHUB_WORKSPACE/dl"
