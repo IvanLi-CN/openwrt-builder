@@ -1,8 +1,8 @@
 # Deploy OpenWrt on Proxmox VE 9
 
 This guide imports an `x86_64` release image into a Proxmox VE 9 QEMU/KVM
-virtual machine. The recommended configuration uses UEFI, a VirtIO disk, and
-two VirtIO network interfaces.
+virtual machine. Its default command mirrors the existing VM 202: SeaBIOS with
+the i440fx machine type, a VirtIO SCSI disk, and two VirtIO network interfaces.
 
 ## Before you begin
 
@@ -22,16 +22,16 @@ DHCP replies.
 
 ## Choose an image
 
-Use `openwrt-x86-64-generic-ext4-combined-efi.img.gz` for the configuration in
-this guide. It provides a writable ext4 root filesystem and boots with UEFI.
+Use `openwrt-x86-64-generic-ext4-combined.img.gz` for the configuration in this
+guide. It provides a writable ext4 root filesystem and boots with SeaBIOS.
 
 The other combined images are useful in these cases:
 
 | Image suffix | Firmware | Root filesystem | Use case |
 | --- | --- | --- | --- |
-| `ext4-combined-efi.img.gz` | UEFI | ext4 | Recommended VM image |
+| `ext4-combined-efi.img.gz` | UEFI | ext4 | Alternative UEFI VM image |
 | `squashfs-combined-efi.img.gz` | UEFI | squashfs + overlay | OpenWrt-style reset and failsafe behavior |
-| `ext4-combined.img.gz` | SeaBIOS | ext4 | Legacy BIOS VM |
+| `ext4-combined.img.gz` | SeaBIOS | ext4 | VM 202-compatible default |
 | `squashfs-combined.img.gz` | SeaBIOS | squashfs + overlay | Legacy BIOS VM with reset support |
 
 Do not import `generic-rootfs.tar.gz` as a VM disk. It contains a root
@@ -43,10 +43,10 @@ The expected interface order is:
 
 | PVE device | OpenWrt device | Role | Suggested bridge |
 | --- | --- | --- | --- |
-| `net0` | `eth0` | LAN, static `192.168.31.1/24` | `vmbr1` |
-| `net1` | `eth1` | WAN, DHCP client | `vmbr0` |
+| `net0` | `eth0` | LAN, static `192.168.31.1/24` | `vmbr0` |
+| `net1` | `eth1` | WAN, DHCP client | `vmbr1` |
 
-`vmbr1` can be an isolated bridge with no physical port for testing. Attach a
+`vmbr0` can be an isolated bridge with no physical port for testing. Attach a
 client VM to the same bridge to reach LuCI. For a physical LAN, bind the LAN
 bridge to a dedicated NIC or VLAN according to the PVE host's network design.
 
@@ -61,7 +61,7 @@ then run:
 ```bash
 cd /var/lib/vz/template/iso/openwrt
 
-IMAGE_GZ=openwrt-x86-64-generic-ext4-combined-efi.img.gz
+IMAGE_GZ=openwrt-x86-64-generic-ext4-combined.img.gz
 grep "  ${IMAGE_GZ}$" sha256sums.txt | sha256sum -c -
 gzip -dk "$IMAGE_GZ"
 IMAGE=${IMAGE_GZ%.gz}
@@ -74,39 +74,47 @@ Stop if checksum verification does not report `OK`.
 Set the values for the PVE node, then create and configure the VM:
 
 ```bash
-VMID=110
+VMID=201
+VM_NAME=OpenWRT-Lite
 STORAGE=local-lvm
-LAN_BRIDGE=vmbr1
-WAN_BRIDGE=vmbr0
+LAN_BRIDGE=vmbr0
+WAN_BRIDGE=vmbr1
+CORES=6
+MEMORY_MIB=2048
+CPU_TYPE=host
+SCSIHW=virtio-scsi-single
+EFI_DISK="${STORAGE}:0,efitype=4m,pre-enrolled-keys=1"
+SCSI_DISK="${STORAGE}:0,import-from=$(pwd)/${IMAGE},iothread=1"
 
 qm create "$VMID" \
-  --name openwrt \
+  --name "$VM_NAME" \
   --ostype l26 \
-  --machine q35 \
-  --bios ovmf \
-  --cores 2 \
-  --memory 512 \
-  --balloon 0 \
+  --bios seabios \
+  --cpu "$CPU_TYPE" \
+  --cores "$CORES" \
+  --memory "$MEMORY_MIB" \
+  --sockets 1 \
+  --numa 0 \
+  --scsihw "$SCSIHW" \
   --net0 "virtio,bridge=${LAN_BRIDGE}" \
   --net1 "virtio,bridge=${WAN_BRIDGE}" \
   --serial0 socket \
-  --vga serial0
+  --vga serial0 \
+  --onboot 1 \
+  --startup order=0,down=10
 
-qm set "$VMID" \
-  --efidisk0 "${STORAGE}:0,efitype=4m,pre-enrolled-keys=0"
+qm set "$VMID" --efidisk0 "$EFI_DISK"
+qm set "$VMID" --scsi0 "$SCSI_DISK"
 
-qm set "$VMID" \
-  --virtio0 "${STORAGE}:0,import-from=$(pwd)/${IMAGE}"
-
-qm set "$VMID" --boot order=virtio0
+qm set "$VMID" --boot order=scsi0
 qm config "$VMID"
 ```
 
-Secure Boot keys are not enrolled because the OpenWrt image is not expected to
-boot with PVE Secure Boot enabled. The imported image already has a 1 GiB root
-filesystem partition, so increasing the virtual disk is optional. Increasing
-only the PVE disk does not automatically expand the OpenWrt partition or
-filesystem.
+The command intentionally retains VM 202's EFI disk settings even though its
+default SeaBIOS boot path does not use them. The imported image already has a
+1 GiB root filesystem partition, so increasing the virtual disk is optional.
+Increasing only the PVE disk does not automatically expand the OpenWrt
+partition or filesystem.
 
 ## First boot
 
@@ -137,10 +145,11 @@ To leave `qm terminal`, press `Ctrl+O`.
 
 ## Optional settings
 
-Enable automatic startup after the PVE node boots:
+The creation command already keeps VM 202's automatic startup and shutdown
+order. To change those values later:
 
 ```bash
-qm set "$VMID" --onboot 1 --startup order=10,up=30
+qm set "$VMID" --onboot 1 --startup order=0,down=10
 ```
 
 Back up the OpenWrt configuration before replacing or re-importing the combined
@@ -154,14 +163,15 @@ the configuration stored in the old image.
 Confirm that the image and firmware match:
 
 ```bash
-qm config "$VMID" | grep -E '^(bios|boot|efidisk0|virtio0):'
+qm config "$VMID" | grep -E '^(bios|boot|scsi0|scsihw):'
 ```
 
-An `*-combined-efi.img` image requires `bios: ovmf`. For a non-EFI
-`*-combined.img`, use SeaBIOS and omit the EFI disk:
+The default `*-combined.img` image uses `bios: seabios`. If you intentionally
+use an `*-combined-efi.img` image instead, configure OVMF and an EFI disk:
 
 ```bash
-qm set "$VMID" --bios seabios --delete efidisk0
+qm set "$VMID" --bios ovmf
+qm set "$VMID" --efidisk0 "${STORAGE}:0,efitype=4m,pre-enrolled-keys=0"
 ```
 
 ### LuCI is unreachable
