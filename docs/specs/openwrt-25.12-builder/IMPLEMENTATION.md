@@ -3,6 +3,7 @@
 - Base tree: `scripts/build.sh` pulls `openwrt/openwrt` at `v25.12.2`.
 - Feeds: official `openwrt-25.12` feeds only.
 - Third-party features are pinned in `config/components.lock.json`.
+- Package-set validation cross-checks locked component names against the selected package configuration.
 - Local shims:
   - `packages/luci-app-ramfree`
   - `packages/luci-app-zerotier`

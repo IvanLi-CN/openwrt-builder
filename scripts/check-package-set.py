@@ -52,7 +52,13 @@ def main():
     if args.version == "server":
         packages.extend(load_package_names(ROOT / "config" / "server.config"))
 
+    lock = json.loads(LOCK.read_text())
+    selected_packages = set(packages)
     errors = []
+    for component in lock["components"]:
+        if component["name"] not in selected_packages:
+            errors.append(f"locked component is not selected: {component['name']}")
+
     for pkg in packages:
         if pkg in EXTERNAL_PACKAGES:
             continue
@@ -60,7 +66,6 @@ def main():
             errors.append("empty package name")
 
     if args.verify_upstreams:
-        lock = json.loads(LOCK.read_text())
         for component in lock["components"]:
             repo = component["repo"]
             ref = component["ref"]
