@@ -18,6 +18,7 @@ PYTHON=${PYTHON:-python3}
 WORKDIR=${WORKDIR:-$ROOT/work}
 OPENWRT_DIR=${OPENWRT_DIR:-$WORKDIR/openwrt}
 DL_DIR=${DL_DIR:-$ROOT/dl}
+CCACHE_DIR=${CCACHE_DIR:-}
 OPENWRT_REPO=${OPENWRT_REPO:-https://github.com/openwrt/openwrt.git}
 OPENWRT_REF=${OPENWRT_REF:-v25.12.2}
 FEEDS_REF=${FEEDS_REF:-openwrt-25.12}
@@ -39,6 +40,9 @@ for octet in "${LAN_OCTETS[@]}"; do
 done
 
 mkdir -p "$WORKDIR" "$DL_DIR"
+if [[ -n "$CCACHE_DIR" ]]; then
+  mkdir -p "$CCACHE_DIR"
+fi
 
 profile_json=$($PYTHON - "$ROOT/config/devices.json" "$DEVICE" <<'PY'
 import json, sys
@@ -92,6 +96,8 @@ cat > .config <<EOF
 CONFIG_TARGET_${TARGET%/*}=y
 CONFIG_TARGET_${TARGET%/*}_${TARGET#*/}=y
 CONFIG_TARGET_${TARGET%/*}_${TARGET#*/}_DEVICE_${PROFILE//-/_}=y
+CONFIG_DEVEL=y
+CONFIG_DOWNLOAD_FOLDER="$DL_DIR"
 EOF
 cat "$ROOT/config/packages.common" >> .config
 if [[ "$NO_APPS" == "y" ]]; then
@@ -107,6 +113,12 @@ for line in profile.get("config", []):
     print(line)
 PY
 cat "$ROOT/config/$VERSION.config" >> .config
+if [[ -n "$CCACHE_DIR" ]]; then
+  cat >> .config <<EOF
+CONFIG_CCACHE=y
+CONFIG_CCACHE_DIR="$CCACHE_DIR"
+EOF
+fi
 
 make defconfig
 if [[ "$BUILD_FAST" == "y" ]]; then

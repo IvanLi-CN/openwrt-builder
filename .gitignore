@@ -1,5 +1,6 @@
 /build/
 /dl/
+/.ccache/
 /work/
 __pycache__/
 *.log

@@ -8,3 +8,4 @@
 - Passed the workflow LAN input through the step environment so untrusted dispatch input is not parsed as shell source.
 - Chose draft-first release publication so a failed asset upload cannot leave a public firmware release without downloadable files.
 - Required locked components to remain selected so fetching a LuCI source tree cannot silently produce firmware without its menu package.
+- Kept Actions caching limited to x86 source downloads and ccache so cache misses and cache-service failures preserve the existing build behavior.
