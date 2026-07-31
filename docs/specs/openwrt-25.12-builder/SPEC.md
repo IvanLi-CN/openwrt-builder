@@ -20,6 +20,7 @@ Build a replacement for the current firmware line on OpenWrt `25.12` without cha
 - Local compatibility packages exist for features that are not covered by official feeds.
 - Build scripts can produce `lite` and `server` artifacts for `x86_64`, `nanopi-r4s`, and `nanopi-r5s`.
 - Validation scripts can confirm the component policy and the package availability assumptions.
+- Package-set validation fails when a component declared in `config/components.lock.json` is not selected by the tracked package configuration.
 - The current UI defaults remain Argon + LuCI with the same enabled apps.
 - The x86_64 image defaults its LAN address to `192.168.31.1`.
 - Manual GitHub Actions builds may optionally override the image LAN address with a valid IPv4 value.
