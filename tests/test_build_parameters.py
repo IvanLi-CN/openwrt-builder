@@ -33,6 +33,41 @@ class BuildParametersTest(unittest.TestCase):
         self.assertIn('          LAN: ${{ inputs.lan }}', workflow)
         self.assertNotIn('export LAN="${{ inputs.lan }}"', workflow)
 
+    def test_build_maps_download_and_optional_compiler_cache(self):
+        build_script = BUILD_SCRIPT.read_text()
+
+        self.assertIn('DL_DIR=${DL_DIR:-$ROOT/dl}', build_script)
+        self.assertIn('CCACHE_DIR=${CCACHE_DIR:-}', build_script)
+        self.assertIn('CONFIG_DEVEL=y', build_script)
+        self.assertIn('CONFIG_DOWNLOAD_FOLDER="$DL_DIR"', build_script)
+        self.assertIn('if [[ -n "$CCACHE_DIR" ]]; then', build_script)
+        self.assertIn('CONFIG_CCACHE=y', build_script)
+        self.assertIn('CONFIG_CCACHE_DIR="$CCACHE_DIR"', build_script)
+
+    def test_workflow_caches_only_x86_build_inputs_non_blockingly(self):
+        workflow = WORKFLOW.read_text()
+
+        self.assertIn('- name: Restore x86 build cache', workflow)
+        self.assertIn('uses: actions/cache/restore@v4', workflow)
+        self.assertIn('uses: actions/cache/save@v4', workflow)
+        self.assertIn("if: ${{ inputs.device == 'x86_64' }}", workflow)
+        self.assertIn('continue-on-error: true', workflow)
+        self.assertIn('openwrt-x86-cache-v1-${{ runner.os }}-x86_64-', workflow)
+        self.assertIn("hashFiles('components.lock.json', 'config/**', 'files/**', 'scripts/build.sh')", workflow)
+        self.assertIn('CCACHE_DIR=$GITHUB_WORKSPACE/.ccache', workflow)
+        self.assertIn('x86 build cache: hit', workflow)
+        self.assertIn('x86 build cache: miss or unavailable', workflow)
+        self.assertIn('"$ccache" --max-size=2G || true', workflow)
+        self.assertIn('du -sh "$DL_DIR" "$CCACHE_DIR" 2>/dev/null || true', workflow)
+
+        cache_section = workflow.split('- name: Restore x86 build cache', 1)[1].split(
+            '- name: Install build dependencies', 1
+        )[0]
+        self.assertIn('dl', cache_section)
+        self.assertIn('.ccache', cache_section)
+        self.assertNotIn('nanopi-r4s', cache_section)
+        self.assertNotIn('nanopi-r5s', cache_section)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,6 +17,18 @@ scripts/check-package-set.py --version lite --device x86_64
 scripts/build.sh lite x86_64
 ```
 
+## Build cache
+
+`DL_DIR` selects the persistent directory for OpenWrt source downloads and
+defaults to `./dl`. Set `CCACHE_DIR` to opt into a persistent compiler cache;
+leaving it unset preserves the normal compiler path.
+
+Manual GitHub Actions builds cache `dl/` and `.ccache/` only for `x86_64`.
+Cache restore and save failures fall back to a regular build, so cache
+availability does not affect the firmware result. The repository keeps the
+GitHub Actions default cache limit and retention policy; inspect the workflow
+log's cache-size line after a build before changing that policy.
+
 ## Deployment
 
 - [Deploy on Proxmox VE 9 as a VM](docs/deploy-pve-9-vm.md)
