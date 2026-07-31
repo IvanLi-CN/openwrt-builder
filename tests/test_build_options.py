@@ -34,6 +34,10 @@ class BuildOptionsTest(unittest.TestCase):
 
     def test_redacts_sensitive_values(self):
         self.assertEqual(
-            redact_options({"API_TOKEN": "secret", "LAN": "10.0.0.1"}),
-            {"API_TOKEN": "***REDACTED***", "LAN": "10.0.0.1"},
+            redact_options({"API_AUTH": "secret", "API_TOKEN": "secret", "LAN": "10.0.0.1"}),
+            {
+                "API_AUTH": "***REDACTED***",
+                "API_TOKEN": "***REDACTED***",
+                "LAN": "10.0.0.1",
+            },
         )

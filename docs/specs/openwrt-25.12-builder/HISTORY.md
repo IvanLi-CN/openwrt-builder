@@ -11,3 +11,4 @@
 - Separated write-authorized release publication from read-only PR builds and made post-defconfig package checks scan the resolved configuration for forbidden selections.
 - Required both validation and image/QEMU gates before release publication, and excluded execution-control environment variables from free-text build options.
 - Made post-defconfig target validation distinguish disabled Kconfig comments from enabled non-x86 target selections.
+- Extended build option metadata redaction to AUTH-style credential names before release notes are rendered.

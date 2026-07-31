@@ -42,7 +42,7 @@ Workflow dispatch requires `build_options` and defaults it to `BUILD_FAST=y`. It
 v<resolved-openwrt-version>-<lite|server>-x86_64-YYYYMMDD-HHMM
 ```
 
-The timestamp uses `Asia/Shanghai`. Manual runs of the same profile are serialized; if a prior release already owns the generated minute-level tag, the later automatic tag adds `-r<GITHUB_RUN_NUMBER>`. Releases are created as drafts, populated only with checksum-verified artifacts, then made visible. Every download includes `sha256sums.txt` and `buildinfo.tar.gz`; buildinfo contains the resolved OpenWrt tag and commit, component revisions, final configuration, package manifest, and redacted build options.
+The timestamp uses `Asia/Shanghai`. Manual runs of the same profile are serialized; if a prior release already owns the generated minute-level tag, the later automatic tag adds `-r<GITHUB_RUN_NUMBER>`. Releases are created as drafts, populated only with checksum-verified artifacts, then made visible. Every download includes `sha256sums.txt` and `buildinfo.tar.gz`; buildinfo contains the resolved OpenWrt tag and commit, component revisions, final configuration, package manifest, and build options with credential-like names redacted.
 
 ## Layout
 

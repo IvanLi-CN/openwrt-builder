@@ -8,7 +8,7 @@ from collections.abc import Mapping
 
 
 NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-SENSITIVE_RE = re.compile(r"TOKEN|PASSWORD|SECRET|KEY|CREDENTIAL", re.IGNORECASE)
+SENSITIVE_RE = re.compile(r"AUTH|TOKEN|PASSWORD|SECRET|KEY|CREDENTIAL", re.IGNORECASE)
 RESERVED_NAMES = frozenset(
     {
         "BUILD_METADATA_FILE",
