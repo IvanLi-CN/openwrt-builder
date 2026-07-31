@@ -30,7 +30,8 @@ class BuildParametersTest(unittest.TestCase):
         self.assertIn("      lan:\n", workflow)
         self.assertIn("        required: false\n", workflow)
         self.assertIn("        default: 192.168.31.1\n", workflow)
-        self.assertIn('          export LAN="${{ inputs.lan }}"', workflow)
+        self.assertIn('          LAN: ${{ inputs.lan }}', workflow)
+        self.assertNotIn('export LAN="${{ inputs.lan }}"', workflow)
 
 
 if __name__ == "__main__":

@@ -74,11 +74,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Build image
+        env:
+          LAN: ${{ inputs.lan }}
         run: |
           export WORKDIR="$GITHUB_WORKSPACE/work"
           export DL_DIR="$GITHUB_WORKSPACE/dl"
           export JOBS="$(nproc)"
-          export LAN="${{ inputs.lan }}"
           scripts/build.sh "${{ inputs.version }}" "${{ inputs.device }}"
       - name: Collect artifacts
         run: |
