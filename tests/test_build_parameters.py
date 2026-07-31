@@ -24,6 +24,17 @@ class BuildParametersTest(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("invalid LAN IPv4 address: 999.168.31.1", result.stderr)
 
+    def test_invalid_build_options_are_rejected_before_build(self):
+        result = subprocess.run(
+            [str(BUILD_SCRIPT), "lite", "x86_64"],
+            env={**os.environ, "BUILD_OPTIONS": "NO_APPS"},
+            text=True,
+            capture_output=True,
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("invalid build_options: build option must use KEY=value", result.stderr)
+
     def test_workflow_exposes_and_uses_lan(self):
         workflow = WORKFLOW.read_text()
 
@@ -32,6 +43,13 @@ class BuildParametersTest(unittest.TestCase):
         self.assertIn("        default: 192.168.31.1\n", workflow)
         self.assertIn('          LAN: ${{ inputs.lan }}', workflow)
         self.assertNotIn('export LAN="${{ inputs.lan }}"', workflow)
+
+    def test_workflow_serializes_auto_tag_creation_and_has_collision_suffix(self):
+        workflow = WORKFLOW.read_text()
+
+        self.assertIn("concurrency:\n", workflow)
+        self.assertIn("AUTO_RELEASE_TAG=true", workflow)
+        self.assertIn('RELEASE_TAG="${RELEASE_TAG}-r${GITHUB_RUN_NUMBER}"', workflow)
 
 
 if __name__ == "__main__":

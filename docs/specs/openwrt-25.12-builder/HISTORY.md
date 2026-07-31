@@ -7,3 +7,4 @@
 - Kept the x86-only compatibility layer limited to package recipes for upstream kernel modules that OpenWrt 25.12 does not otherwise expose for this target; no driver source, private patch, or commit pin is introduced.
 - Kept draft-first release publication and extended build provenance so a release can be checked against its source revisions, final configuration, and redacted input parameters.
 - Kept the image LAN default aligned with the existing PVE network and passed the optional workflow input through the build-step environment, allowing free-text `build_options` to retain precedence without shell evaluation.
+- Propagate malformed `build_options` failures before any source resolution and make minute-level automatic release tags collision-safe without reusing an existing release.

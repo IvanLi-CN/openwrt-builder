@@ -27,7 +27,7 @@ Build the repository's custom firmware flavor on the OpenWrt 25.12 release line 
 - `NO_APPS=y` keeps base LuCI, Argon, drivers, filesystems, and system tools while removing optional applications and their application-only runtimes.
 - `build_options` accepts shell-quoted `KEY=value` tokens as data. It may supply arbitrary business variables but cannot replace source refs, paths, jobs, Git environment, GitHub execution context, or credential values.
 - Component refs are named branches or tags. The build records the resolved commits for traceability without treating them as future pins.
-- Manual releases default to prerelease. Stable releases are GitHub Latest. Empty tags use the resolved OpenWrt tag, flavor, x86_64, and an Asia/Shanghai timestamp.
+- Manual releases default to prerelease. Stable releases are GitHub Latest. Empty tags use the resolved OpenWrt tag, flavor, x86_64, and an Asia/Shanghai timestamp; a collision appends the GitHub run number without overwriting the existing release.
 
 ## Acceptance Criteria
 

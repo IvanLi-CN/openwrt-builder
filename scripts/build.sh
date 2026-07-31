@@ -16,10 +16,14 @@ if [[ "$DEVICE" != "x86_64" ]]; then
   exit 2
 fi
 
-# build_options is data, never shell source. The parser emits NUL-delimited pairs.
+# build_options is data, never shell source. Persist the parser output first so
+# an invalid value cannot be hidden by Bash process-substitution exit semantics.
+parsed_options=$(mktemp)
+trap 'rm -f "$parsed_options"' EXIT
+"$PYTHON" "$ROOT/scripts/parse-build-options.py" --format nul -- "$BUILD_OPTIONS" > "$parsed_options"
 while IFS= read -r -d '' name && IFS= read -r -d '' value; do
   export "$name=$value"
-done < <("$PYTHON" "$ROOT/scripts/parse-build-options.py" --format nul -- "$BUILD_OPTIONS")
+done < "$parsed_options"
 
 WORKDIR=${WORKDIR:-$ROOT/work}
 OPENWRT_DIR=${OPENWRT_DIR:-$WORKDIR/openwrt}
