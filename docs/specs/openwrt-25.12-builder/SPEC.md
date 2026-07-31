@@ -36,6 +36,7 @@ Build the repository's custom firmware flavor on the OpenWrt 25.12 release line 
 - After `make defconfig`, capability checks validate the actual selected package set.
 - PRs compile and QEMU boot `server/x86_64`; manual builds QEMU boot the selected profile before publication.
 - Each release contains checksum-verified firmware files, `sha256sums.txt`, and `buildinfo.tar.gz` with resolved source/version/option provenance.
+- The default LAN is `192.168.31.1`; manual builds may optionally supply a validated LAN input or set `LAN` through `build_options`.
 
 ## Visual Evidence
 

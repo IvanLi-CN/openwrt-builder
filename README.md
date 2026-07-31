@@ -19,7 +19,11 @@ python3 scripts/check-package-set.py --version lite --device x86_64 --verify-ups
 BUILD_OPTIONS='BUILD_FAST=y' scripts/build.sh lite x86_64
 ```
 
-`BUILD_OPTIONS` accepts a shell-quoted list of `KEY=value` assignments. It is parsed as data and is never sourced or evaluated. Existing build variables such as `LAN`, `BUILD_FAST`, and `NO_APPS` remain available; build source, work directory, job count, Git environment, GitHub context, and credential variables are protected.
+## Deployment
+
+- [Deploy on Proxmox VE 9 as a VM](docs/deploy-pve-9-vm.md)
+
+`BUILD_OPTIONS` accepts a shell-quoted list of `KEY=value` assignments. It is parsed as data and is never sourced or evaluated. Existing build variables such as `LAN`, `BUILD_FAST`, and `NO_APPS` remain available; build source, work directory, job count, Git environment, GitHub context, and credential variables are protected. The default LAN is `192.168.31.1`; the manual workflow exposes the same value as an optional input.
 
 `NO_APPS=y` retains LuCI, Argon, drivers, filesystems, and system tools while removing optional LuCI applications and their application-only runtimes. `CONFIG_CUSTOM` is intentionally not an option: the custom package flavor is fixed by this repository.
 

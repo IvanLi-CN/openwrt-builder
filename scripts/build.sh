@@ -25,7 +25,7 @@ WORKDIR=${WORKDIR:-$ROOT/work}
 OPENWRT_DIR=${OPENWRT_DIR:-$WORKDIR/openwrt}
 DL_DIR=${DL_DIR:-$ROOT/dl}
 COMPONENT_CACHE=${COMPONENT_CACHE:-$WORKDIR/components}
-LAN=${LAN:-10.0.0.1}
+LAN=${LAN:-192.168.31.1}
 JOBS=${JOBS:-$(($(nproc 2>/dev/null || sysctl -n hw.ncpu) + 1))}
 NO_APPS=${NO_APPS:-n}
 BUILD_FAST=${BUILD_FAST:-n}
@@ -38,6 +38,18 @@ if [[ "$BUILD_FAST" != "y" && "$BUILD_FAST" != "n" ]]; then
   echo "BUILD_FAST must be y or n" >&2
   exit 2
 fi
+
+if [[ ! "$LAN" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+  echo "invalid LAN IPv4 address: $LAN" >&2
+  exit 2
+fi
+IFS=. read -r -a LAN_OCTETS <<< "$LAN"
+for octet in "${LAN_OCTETS[@]}"; do
+  if ((10#$octet > 255)); then
+    echo "invalid LAN IPv4 address: $LAN" >&2
+    exit 2
+  fi
+done
 
 source_json=$($PYTHON - "$ROOT/config/components.lock.json" <<'PY'
 import json

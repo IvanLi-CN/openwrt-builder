@@ -4,7 +4,24 @@
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
+
+PKG_NAME:=kmod-x86-compat
+PKG_VERSION:=1
+PKG_RELEASE:=1
+PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_NAME)
+
 include $(INCLUDE_DIR)/package.mk
+
+# This directory only declares in-tree kernel packages. Do not apply the
+# ordinary source-package preparation or compilation defaults to the wrapper.
+define Build/Prepare
+endef
+
+define Build/Configure
+endef
+
+define Build/Compile
+endef
 
 define KernelPackage/wangxun-libwx
   SUBMENU:=Network Devices

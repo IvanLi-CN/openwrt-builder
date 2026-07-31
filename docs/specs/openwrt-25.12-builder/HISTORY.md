@@ -6,3 +6,4 @@
 - Replaced `ALL_KMODS` and `ALL_NONSHARED` with an explicit compatibility set and official BBR/firewall4 flow-offload behavior.
 - Kept the x86-only compatibility layer limited to package recipes for upstream kernel modules that OpenWrt 25.12 does not otherwise expose for this target; no driver source, private patch, or commit pin is introduced.
 - Kept draft-first release publication and extended build provenance so a release can be checked against its source revisions, final configuration, and redacted input parameters.
+- Kept the image LAN default aligned with the existing PVE network and passed the optional workflow input through the build-step environment, allowing free-text `build_options` to retain precedence without shell evaluation.
