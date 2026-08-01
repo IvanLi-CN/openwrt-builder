@@ -28,6 +28,7 @@ done < "$parsed_options"
 WORKDIR=${WORKDIR:-$ROOT/work}
 OPENWRT_DIR=${OPENWRT_DIR:-$WORKDIR/openwrt}
 DL_DIR=${DL_DIR:-$ROOT/dl}
+CCACHE_DIR=${CCACHE_DIR:-}
 COMPONENT_CACHE=${COMPONENT_CACHE:-$WORKDIR/components}
 LAN=${LAN:-192.168.31.1}
 JOBS=${JOBS:-$(($(nproc 2>/dev/null || sysctl -n hw.ncpu) + 1))}
@@ -69,6 +70,9 @@ FEEDS_REF=$(printf '%s' "$source_json" | $PYTHON -c 'import json,sys; print(json
 RESOLVED_OPENWRT_REF=$($PYTHON "$ROOT/scripts/resolve-openwrt-version.py" --repo "$OPENWRT_REPO" --series "$OPENWRT_SERIES")
 
 mkdir -p "$WORKDIR" "$DL_DIR" "$COMPONENT_CACHE"
+if [[ -n "$CCACHE_DIR" ]]; then
+  mkdir -p "$CCACHE_DIR"
+fi
 
 profile_json=$($PYTHON - "$ROOT/config/devices.json" "$DEVICE" <<'PY'
 import json
@@ -126,6 +130,8 @@ cat > .config <<EOF
 CONFIG_TARGET_${TARGET%/*}=y
 CONFIG_TARGET_${TARGET%/*}_${TARGET#*/}=y
 CONFIG_TARGET_${TARGET%/*}_${TARGET#*/}_DEVICE_${PROFILE//-/_}=y
+CONFIG_DEVEL=y
+CONFIG_DOWNLOAD_FOLDER="$DL_DIR"
 EOF
 cat "$ROOT/config/packages.base" >> .config
 cat "$ROOT/config/$VERSION.config" >> .config
@@ -143,6 +149,12 @@ profile = json.loads(sys.argv[1])
 for line in profile.get("config", []):
     print(line)
 PY
+if [[ -n "$CCACHE_DIR" ]]; then
+  cat >> .config <<EOF
+CONFIG_CCACHE=y
+CONFIG_CCACHE_DIR="$CCACHE_DIR"
+EOF
+fi
 
 make defconfig
 check_args=(--version "$VERSION" --device "$DEVICE" --resolved-config "$OPENWRT_DIR/.config")

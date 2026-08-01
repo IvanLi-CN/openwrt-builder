@@ -93,6 +93,36 @@ jobs:
           sudo rm -rf /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/share/dotnet
           sudo docker image prune -af || true
           df -h
+      - name: Restore x86 build cache
+        if: ${{ env.BUILD_DEVICE == 'x86_64' }}
+        id: x86-build-cache
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            dl
+            .ccache
+          key: openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ env.BUILD_VERSION }}-${{ hashFiles('config/components.lock.json', 'config/**', 'files/**', 'scripts/build.sh') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ env.BUILD_VERSION }}-${{ hashFiles('config/components.lock.json', 'config/**', 'files/**', 'scripts/build.sh') }}-
+      - name: Configure x86 compiler cache
+        if: ${{ env.BUILD_DEVICE == 'x86_64' }}
+        run: echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" >> "$GITHUB_ENV"
+      - name: Report x86 build cache status
+        if: ${{ env.BUILD_DEVICE == 'x86_64' }}
+        continue-on-error: true
+        env:
+          CACHE_HIT: ${{ steps.x86-build-cache.outputs.cache-hit }}
+          CACHE_MATCHED_KEY: ${{ steps.x86-build-cache.outputs.cache-matched-key }}
+        run: |
+          if [ "$CACHE_HIT" = "true" ]; then
+            echo "x86 build cache: exact hit"
+          elif [ -n "$CACHE_MATCHED_KEY" ]; then
+            echo "x86 build cache: restored fallback"
+          else
+            echo "x86 build cache: miss or unavailable"
+          fi
+          du -sh "$GITHUB_WORKSPACE/dl" "$GITHUB_WORKSPACE/.ccache" 2>/dev/null || true
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -125,6 +155,28 @@ jobs:
             exit 1
           fi
           TIMEOUT=120 scripts/boot-qemu-x86_64.sh "${images[0]}"
+      - name: Limit and report x86 build cache
+        if: ${{ success() && env.BUILD_DEVICE == 'x86_64' }}
+        continue-on-error: true
+        env:
+          DL_DIR: ${{ github.workspace }}/dl
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          OPENWRT_DIR: ${{ github.workspace }}/work/openwrt
+        run: |
+          ccache="$OPENWRT_DIR/staging_dir/host/bin/ccache"
+          if [ -x "$ccache" ]; then
+            "$ccache" --max-size=2G || true
+          fi
+          du -sh "$DL_DIR" "$CCACHE_DIR" 2>/dev/null || true
+      - name: Save x86 build cache
+        if: ${{ success() && env.BUILD_DEVICE == 'x86_64' }}
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            dl
+            .ccache
+          key: openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ env.BUILD_VERSION }}-${{ hashFiles('config/components.lock.json', 'config/**', 'files/**', 'scripts/build.sh') }}-${{ github.run_id }}-${{ github.run_attempt }}
       - uses: actions/upload-artifact@v4
         with:
           name: openwrt-${{ env.BUILD_VERSION }}-${{ env.BUILD_DEVICE }}

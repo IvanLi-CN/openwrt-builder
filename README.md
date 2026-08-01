@@ -19,6 +19,19 @@ python3 scripts/check-package-set.py --version lite --device x86_64 --verify-ups
 BUILD_OPTIONS='BUILD_FAST=y' scripts/build.sh lite x86_64
 ```
 
+## Build cache
+
+`DL_DIR` selects the persistent directory for OpenWrt source downloads and
+defaults to `./dl`. Set `CCACHE_DIR` to opt into a persistent compiler cache;
+leaving it unset preserves the normal compiler path.
+
+GitHub Actions builds cache `dl/` and `.ccache/` only for `x86_64`.
+Cache restore and save failures fall back to a regular build, so cache
+availability does not change the selected package configuration or image target.
+ccache is limited to 2 GiB before saving. GitHub Actions defaults to 10 GiB of
+cache storage per repository and evicts entries that are not accessed for more
+than 7 days; no additional cache storage is configured here.
+
 ## Deployment
 
 - [Deploy on Proxmox VE 9 as a VM](docs/deploy-pve-9-vm.md)

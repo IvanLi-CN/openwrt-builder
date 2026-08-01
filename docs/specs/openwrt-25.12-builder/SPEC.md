@@ -37,6 +37,7 @@ Build the repository's custom firmware flavor on the OpenWrt 25.12 release line 
 - PRs compile and QEMU boot `server/x86_64` with read-only repository permissions; a separate manual-only write-authorized job publishes only after both profile validation and the selected profile's QEMU gate pass.
 - Each release contains checksum-verified firmware files, `sha256sums.txt`, and `buildinfo.tar.gz` with resolved source/version/option provenance.
 - The default LAN is `192.168.31.1`; manual builds may optionally supply a validated LAN input or set `LAN` through `build_options`.
+- `x86_64` Actions builds may cache only download and compiler-cache directories. Cache failures must fall back to the same build inputs and firmware behavior.
 
 ## Visual Evidence
 
