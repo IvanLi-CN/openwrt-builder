@@ -1,0 +1,27 @@
+{
+  "apps": [
+    "luci-app-frpc", "luci-app-mosdns", "luci-app-netdata", "luci-app-netspeedtest",
+    "luci-app-nikki", "luci-app-nlbwmon", "luci-app-openclash", "luci-app-ramfree",
+    "luci-app-socat", "luci-app-tailscale-community", "luci-app-ttyd", "luci-app-upnp",
+    "luci-app-watchcat", "luci-app-wol", "luci-app-zerotier", "luci-proto-wireguard",
+    "netdata", "socat", "tailscale", "wireguard-tools", "zerotier"
+  ],
+  "base": [
+    "i915-firmware-huc", "kmod-drm-i915", "kmod-fs-exfat", "kmod-fs-f2fs",
+    "kmod-fs-ntfs3", "kmod-fs-xfs", "kmod-igb", "kmod-igc", "kmod-mlx4-core",
+    "kmod-mlx5-core", "kmod-mt76x2", "kmod-mt7921e", "kmod-mt7921u", "kmod-ngbe",
+    "kmod-nft-offload", "kmod-nvme", "kmod-r8125", "kmod-r8126", "kmod-r8168",
+    "kmod-r8169", "kmod-sound-core-x86-64", "kmod-sound-hda-codec-realtek-x86-64",
+    "kmod-sound-hda-core-x86-64", "kmod-sound-hda-intel-x86-64", "kmod-tcp-bbr", "kmod-txgbe",
+    "kmod-usb-storage-uas", "kmod-usb3", "luci", "luci-theme-argon", "zram-swap"
+  ],
+  "forbidden_config": [
+    "CONFIG_ALL_KMODS=y", "CONFIG_ALL_NONSHARED=y", "CONFIG_PACKAGE_kmod-fast-classifier=y",
+    "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y", "CONFIG_PACKAGE_kmod-tcp-bbr3=y",
+    "CONFIG_PACKAGE_kmod-tcp-brutal=y"
+  ],
+  "server": [
+    "kmod-l2tp", "kmod-pppol2tp", "ppp-mod-pppol2tp", "xl2tpd"
+  ],
+  "server_apps": ["docker", "docker-compose", "dockerd", "luci-app-dockerman"]
+}

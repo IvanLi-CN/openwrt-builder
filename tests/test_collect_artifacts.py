@@ -31,6 +31,9 @@ class CollectArtifactsTest(unittest.TestCase):
             for name in ("config.buildinfo", "feeds.buildinfo", "version.buildinfo"):
                 (target / name).write_text(name)
             (target / "packages.manifest").write_text("package metadata")
+            (openwrt / ".config").write_text("CONFIG_TARGET_x86=y\n")
+            (openwrt / "openwrt-builder-metadata.json").write_text("{}\n")
+            (openwrt / "openwrt-builder-components.json").write_text("{}\n")
 
             output = tmp_path / "artifacts"
             subprocess.run(
@@ -52,6 +55,9 @@ class CollectArtifactsTest(unittest.TestCase):
                     "buildinfo/config.buildinfo",
                     "buildinfo/feeds.buildinfo",
                     "buildinfo/manifest.txt",
+                    "buildinfo/final.config",
+                    "buildinfo/openwrt-builder-components.json",
+                    "buildinfo/openwrt-builder-metadata.json",
                     "buildinfo/version.buildinfo",
                 ]))
 

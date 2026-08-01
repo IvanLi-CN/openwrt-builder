@@ -1,17 +1,9 @@
 # Implementation Notes
 
-- Base tree: `scripts/build.sh` pulls `openwrt/openwrt` at `v25.12.2`.
-- Feeds: official `openwrt-25.12` feeds only.
-- Third-party features are pinned in `config/components.lock.json`.
-- Package-set validation cross-checks locked component names against the selected package configuration.
-- Local shims:
-  - `packages/luci-app-ramfree`
-  - `packages/luci-app-zerotier`
-- Runtime overlay files are tracked under `files/`.
-- CI entrypoint: `.github/workflows/build-openwrt.yml`.
-- `scripts/build.sh` defaults `LAN` to `192.168.31.1`, validates IPv4 input, and applies it to the generated OpenWrt LAN configuration.
-- `scripts/build.sh` maps `DL_DIR` into the OpenWrt download configuration. `CCACHE_DIR` is opt-in and enables OpenWrt ccache without changing the selected package set or image target.
-- The manual build workflow passes its optional `lan` input through the build step environment before invoking `scripts/build.sh`.
-- Manual `x86_64` workflow runs restore and save only `dl/` and `.ccache/`. Keys are scoped to the selected version and build inputs, then refreshed on successful runs so later builds can reuse new downloads and compiler entries. Cache operations are non-blocking; the workflow caps ccache at 2 GiB and reports both cache directory sizes.
-- Release publication creates a draft first, uploads only regular artifact files, then marks the release as a prerelease after all uploads succeed.
-- Collected build metadata is distributed as `buildinfo.tar.gz`; its checksum is included with the firmware payload checksums.
+- `scripts/resolve-openwrt-version.py` resolves the highest stable tag in the configured `25.12` series before cloning the OpenWrt tree.
+- `config/packages.base`, `config/packages.apps`, `config/lite.config`, `config/server.config`, and `config/server.apps` compose the fixed custom flavor and enforce `NO_APPS` without post-hoc text deletion.
+- `config/capabilities.json` declares the required application, x86 hardware, storage, USB, zram, BBR, flow-offload, and server capabilities. `scripts/check-package-set.py` checks both tracked profiles and post-defconfig output.
+- `config/components.lock.json` uses official feeds, selected Lean 25.12 directories for Netdata and ZeroTier, package-specific upstreams for the remaining third-party applications, and local ramfree plus x86 compatibility packages. The compatibility recipes use OpenWrt's standard kernel and package macros so `make defconfig` registers the packages; their availability is gated by PCI support because the upstream x86 target predicate and audio target gate are not selected for the x86_64 subtarget. They package only in-tree Wangxun NGBE/TXGBE and the official ALSA sound core, HDA core, Intel driver, and Realtek codec modules, adding no driver source or kernel patch.
+- `scripts/parse-build-options.py` parses free-text build options without evaluation and rejects execution-control environment variables. `scripts/write-build-metadata.py` records source refs and resolved commits with credential-like option values redacted, including AUTH-style names.
+- `.github/workflows/build-openwrt.yml` validates lite and server configuration, compiles and QEMU boots server on PRs, and compiles/QEMU boots the selected manual profile before a separate, write-authorized draft-first publication job. The release job requires both the validation matrix and build job to pass. PR build jobs retain read-only repository permissions and cancel stale PR executions, while manual releases remain serialized. Its optional LAN input is passed through the step environment and validated by `scripts/build.sh`; `build_options` remains the higher-precedence free-text override. An auto-generated tag gains the run number only when a minute-level collision exists. `check-package-set.py` scans the resolved `.config` for forbidden settings after `make defconfig`, considering only enabled target selections. The x86 workflow non-blockingly restores and saves only `dl/` and `.ccache/`, caps ccache at 2 GiB, and scopes cache keys to the selected flavor and tracked build inputs.
+- Collected `buildinfo.tar.gz` includes OpenWrt build metadata, final `.config`, component revision data, generated build information, and the package manifest.

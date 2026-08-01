@@ -24,6 +24,17 @@ class BuildParametersTest(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("invalid LAN IPv4 address: 999.168.31.1", result.stderr)
 
+    def test_invalid_build_options_are_rejected_before_build(self):
+        result = subprocess.run(
+            [str(BUILD_SCRIPT), "lite", "x86_64"],
+            env={**os.environ, "BUILD_OPTIONS": "NO_APPS"},
+            text=True,
+            capture_output=True,
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("invalid build_options: build option must use KEY=value", result.stderr)
+
     def test_workflow_exposes_and_uses_lan(self):
         workflow = WORKFLOW.read_text()
 
@@ -32,6 +43,24 @@ class BuildParametersTest(unittest.TestCase):
         self.assertIn("        default: 192.168.31.1\n", workflow)
         self.assertIn('          LAN: ${{ inputs.lan }}', workflow)
         self.assertNotIn('export LAN="${{ inputs.lan }}"', workflow)
+
+    def test_workflow_serializes_auto_tag_creation_and_has_collision_suffix(self):
+        workflow = WORKFLOW.read_text()
+
+        self.assertIn("concurrency:\n", workflow)
+        self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", workflow)
+        self.assertIn("AUTO_RELEASE_TAG=true", workflow)
+        self.assertIn('RELEASE_TAG="${RELEASE_TAG}-r${GITHUB_RUN_NUMBER}"', workflow)
+
+    def test_release_permissions_are_isolated_from_pr_builds(self):
+        workflow = WORKFLOW.read_text()
+        build_job, release_job = workflow.split("  release:\n", 1)
+
+        self.assertIn("permissions:\n  contents: read", workflow)
+        self.assertNotIn("contents: write", build_job)
+        self.assertIn("permissions:\n      contents: write", release_job)
+        self.assertIn("needs: [validate, build]", release_job)
+        self.assertNotIn("Publish release", build_job)
 
     def test_build_maps_download_and_optional_compiler_cache(self):
         build_script = BUILD_SCRIPT.read_text()
@@ -50,9 +79,9 @@ class BuildParametersTest(unittest.TestCase):
         self.assertIn('- name: Restore x86 build cache', workflow)
         self.assertIn('uses: actions/cache/restore@v4', workflow)
         self.assertIn('uses: actions/cache/save@v4', workflow)
-        self.assertIn("if: ${{ inputs.device == 'x86_64' }}", workflow)
+        self.assertIn("if: ${{ env.BUILD_DEVICE == 'x86_64' }}", workflow)
         self.assertIn('continue-on-error: true', workflow)
-        self.assertIn('openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ inputs.version }}-', workflow)
+        self.assertIn('openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ env.BUILD_VERSION }}-', workflow)
         self.assertIn("hashFiles('config/components.lock.json', 'config/**', 'files/**', 'scripts/build.sh')", workflow)
         self.assertIn('${{ github.run_id }}-${{ github.run_attempt }}', workflow)
         self.assertIn('CCACHE_DIR=$GITHUB_WORKSPACE/.ccache', workflow)

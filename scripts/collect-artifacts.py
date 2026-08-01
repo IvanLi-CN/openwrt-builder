@@ -31,6 +31,12 @@ def main():
     for src in target_dir.glob("*.manifest"):
         shutil.copy2(src, info / "manifest.txt")
         break
+    for src, name in [
+        (openwrt / ".config", "final.config"),
+        (openwrt / "openwrt-builder-metadata.json", "openwrt-builder-metadata.json"),
+        (openwrt / "openwrt-builder-components.json", "openwrt-builder-components.json"),
+    ]:
+        if src.exists(): shutil.copy2(src, info / name)
     if not copied:
         print("no firmware artifacts found", file=sys.stderr)
         return 1

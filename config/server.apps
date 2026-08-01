@@ -1,0 +1,5 @@
+# Server application runtime. Omitted together with packages.apps when NO_APPS=y.
+CONFIG_PACKAGE_docker=y
+CONFIG_PACKAGE_dockerd=y
+CONFIG_PACKAGE_docker-compose=y
+CONFIG_PACKAGE_luci-app-dockerman=y

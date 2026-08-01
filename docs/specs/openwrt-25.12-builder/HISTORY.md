@@ -1,11 +1,15 @@
 # History
 
-- Chose `25.12.2` because the target release and package trees are published and stable.
-- Rejected broad third-party feed collections to keep the dependency surface narrow.
-- Kept only the upstream component repositories needed for the currently enabled apps.
-- Added local packages for features that need a small compatibility layer instead of a new feed.
-- Kept the image LAN default aligned with the existing PVE network while allowing manual CI builds to override it without making that input mandatory.
-- Passed the workflow LAN input through the step environment so untrusted dispatch input is not parsed as shell source.
-- Chose draft-first release publication so a failed asset upload cannot leave a public firmware release without downloadable files.
-- Required locked components to remain selected so fetching a LuCI source tree cannot silently produce firmware without its menu package.
+- Chose dynamic stable `v25.12.x` selection so the repository follows the supported 25.12 patch line without embedding a stricter pin than the reference project.
+- Reduced publication scope to x86_64 and made custom package selection a repository invariant, leaving users with only the meaningful lite/server choice.
+- Replaced archived Tailscale and WOL sources with official 25.12 LuCI packages. Netdata and ZeroTier use only their maintained Lean LuCI directories instead of a broad feed import.
+- Replaced `ALL_KMODS` and `ALL_NONSHARED` with an explicit compatibility set and official BBR/firewall4 flow-offload behavior.
+- Kept the x86-only compatibility layer limited to package recipes for upstream kernel modules that OpenWrt 25.12 does not otherwise expose for this target; no driver source, private patch, or commit pin is introduced.
+- Kept draft-first release publication and extended build provenance so a release can be checked against its source revisions, final configuration, and redacted input parameters.
+- Kept the image LAN default aligned with the existing PVE network and passed the optional workflow input through the build-step environment, allowing free-text `build_options` to retain precedence without shell evaluation.
+- Propagate malformed `build_options` failures before any source resolution and make minute-level automatic release tags collision-safe without reusing an existing release.
+- Separated write-authorized release publication from read-only PR builds and made post-defconfig package checks scan the resolved configuration for forbidden selections.
+- Required both validation and image/QEMU gates before release publication, and excluded execution-control environment variables from free-text build options.
+- Made post-defconfig target validation distinguish disabled Kconfig comments from enabled non-x86 target selections.
+- Extended build option metadata redaction to AUTH-style credential names before release notes are rendered.
 - Kept Actions caching limited to x86 source downloads and ccache so cache misses and cache-service failures preserve the existing build behavior.

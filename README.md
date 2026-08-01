@@ -1,20 +1,22 @@
 # openwrt-builder
 
-OpenWrt image builder for the 25.12 line, with the current firmware UI and feature set preserved as the default target.
+OpenWrt 25.12 x86_64 firmware builder. It publishes one repository-defined custom flavor in two sizes: `lite` and `server`.
 
 ## What this repo does
 
-- Pins OpenWrt to `v25.12.2` and official `openwrt-25.12` feeds.
-- Reuses only the specific upstream component repositories needed for the enabled apps.
-- Keeps the current UI stack: Argon, LuCI, and the enabled app set carried over from `openwrt-lite`.
-- Builds `lite` and `server` images for `x86_64`, `nanopi-r4s`, and `nanopi-r5s`.
+- Resolves the newest stable `v25.12.x` tag at build time and uses official `openwrt-25.12` feeds.
+- Builds only `x86_64`; `server` is a strict superset of `lite`.
+- Keeps the custom LuCI stack: Argon, MosDNS, Netdata, Nikki, OpenClash, Tailscale, ZeroTier, Wake-on-LAN, and the other enabled `openwrt-lite` custom features.
+- Uses official packages first, selected Lean 25.12 LuCI directories for Netdata and ZeroTier, then package-specific upstream repositories. Third-party sources follow branch/tag refs and never commit SHA pins.
+- Uses explicit x86 driver, USB, filesystem, zram, BBR, and firewall4 flow-offload selections instead of `ALL_KMODS`, `ALL_NONSHARED`, or private kernel patches. The small local compatibility recipes expose only OpenWrt's in-tree Wangxun NGBE/TXGBE and Intel HDA modules where the 25.12 package set does not expose them for x86_64.
 
-## Quick start
+## Build locally
 
 ```bash
-scripts/check-component-policy.py
-scripts/check-package-set.py --version lite --device x86_64
-scripts/build.sh lite x86_64
+python3 -m unittest discover -s tests -v
+python3 scripts/check-component-policy.py
+python3 scripts/check-package-set.py --version lite --device x86_64 --verify-upstreams
+BUILD_OPTIONS='BUILD_FAST=y' scripts/build.sh lite x86_64
 ```
 
 ## Build cache
@@ -23,7 +25,7 @@ scripts/build.sh lite x86_64
 defaults to `./dl`. Set `CCACHE_DIR` to opt into a persistent compiler cache;
 leaving it unset preserves the normal compiler path.
 
-Manual GitHub Actions builds cache `dl/` and `.ccache/` only for `x86_64`.
+GitHub Actions builds cache `dl/` and `.ccache/` only for `x86_64`.
 Cache restore and save failures fall back to a regular build, so cache
 availability does not change the selected package configuration or image target.
 ccache is limited to 2 GiB before saving. GitHub Actions defaults to 10 GiB of
@@ -34,25 +36,30 @@ than 7 days; no additional cache storage is configured here.
 
 - [Deploy on Proxmox VE 9 as a VM](docs/deploy-pve-9-vm.md)
 
-## Pre-release downloads
+`BUILD_OPTIONS` accepts a shell-quoted list of `KEY=value` assignments. It is parsed as data and is never sourced or evaluated. Existing build variables such as `LAN`, `BUILD_FAST`, and `NO_APPS` remain available; build source, work directory, job count, Git environment, GitHub context, and credential variables are protected. The default LAN is `192.168.31.1`; the manual workflow exposes the same value as an optional input.
 
-Firmware builds are published as GitHub pre-releases. Download the image that
-matches the target boot mode, along with `sha256sums.txt` and
-`buildinfo.tar.gz`.
+`NO_APPS=y` retains LuCI, Argon, drivers, filesystems, and system tools while removing optional LuCI applications and their application-only runtimes. `CONFIG_CUSTOM` is intentionally not an option: the custom package flavor is fixed by this repository.
 
-`sha256sums.txt` covers every firmware image and the build-information archive.
-Verify the downloaded payloads before flashing:
+## Profiles
 
-```bash
-sha256sum -c sha256sums.txt
+- `lite`: common custom router profile.
+- `server`: lite plus server diagnostics, L2TP support, Docker, and Dockerman.
+
+The release workflow validates both profile configurations. Pull requests additionally compile and QEMU boot the maximal `server/x86_64` image with read-only repository permissions. Manual builds compile and boot the selected profile before a separate write-authorized release job can create a release.
+
+## Releases
+
+Workflow dispatch requires `build_options` and defaults it to `BUILD_FAST=y`. It accepts shell-quoted `KEY=value` data without evaluation; source, path, GitHub/Git, shell-startup, Make-control, dynamic-loader, and interpreter-runtime variables are reserved. Publishing defaults to `prerelease`; select `stable` to make the result GitHub Latest. An empty release tag becomes:
+
+```text
+v<resolved-openwrt-version>-<lite|server>-x86_64-YYYYMMDD-HHMM
 ```
 
-`buildinfo.tar.gz` contains the generated configuration, feed revisions,
-version information, and package manifest for the build.
+The timestamp uses `Asia/Shanghai`. Manual runs of the same profile are serialized; if a prior release already owns the generated minute-level tag, the later automatic tag adds `-r<GITHUB_RUN_NUMBER>`. Releases are created as drafts, populated only with checksum-verified artifacts, then made visible. Every download includes `sha256sums.txt` and `buildinfo.tar.gz`; buildinfo contains the resolved OpenWrt tag and commit, component revisions, final configuration, package manifest, and build options with credential-like names redacted.
 
 ## Layout
 
-- `config/` pinned source and package selections
+- `config/` source policy, package profiles, devices, and capability assertions
 - `packages/` local compatibility packages
 - `files/` runtime overlay copied into the image
-- `scripts/` validation, build, and artifact collection
+- `scripts/` version resolution, validation, build, artifact collection, and release metadata
