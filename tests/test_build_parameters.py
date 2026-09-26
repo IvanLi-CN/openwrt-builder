@@ -77,8 +77,8 @@ class BuildParametersTest(unittest.TestCase):
         workflow = WORKFLOW.read_text()
 
         self.assertIn('- name: Restore x86 build cache', workflow)
-        self.assertIn('uses: actions/cache/restore@v4', workflow)
-        self.assertIn('uses: actions/cache/save@v4', workflow)
+        self.assertIn('uses: actions/cache/restore@v6', workflow)
+        self.assertIn('uses: actions/cache/save@v6', workflow)
         self.assertIn("if: ${{ env.BUILD_DEVICE == 'x86_64' }}", workflow)
         self.assertIn('continue-on-error: true', workflow)
         self.assertIn('openwrt-x86-cache-v2-${{ runner.os }}-x86_64-${{ env.BUILD_VERSION }}-', workflow)
@@ -101,7 +101,7 @@ class BuildParametersTest(unittest.TestCase):
         self.assertNotIn('nanopi-r5s', cache_section)
 
         save_section = workflow.split('- name: Save x86 build cache', 1)[1].split(
-            '- uses: actions/upload-artifact@v4', 1
+            '- uses: actions/upload-artifact@v7', 1
         )[0]
         self.assertNotIn('cache-hit !=', save_section)
 
